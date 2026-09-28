@@ -61,10 +61,11 @@ nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
   `udevadm trigger --settle` on each formatted partition to force udev to
   re-probe.
 - **Commands run through ezconf's terminal panel run as `root`**, not as the
-  `nixos` user the graphical X session belongs to — `setxkbmap` and `gparted`
-  need `DISPLAY=:0` set explicitly on their button commands, and
-  `xhost +local:` is set in `sessionCommands` to let root's shell reach that
-  display at all.
+  `nixos` user the graphical X session belongs to — `DISPLAY` is exported
+  globally (`environment.variables.DISPLAY = ":0"`, since there's only ever
+  one X display on this live ISO) so `setxkbmap`/`gparted`/etc. don't need it
+  set per-command, and `xhost +local:` is set in `sessionCommands` to let
+  root's shell reach that display at all.
 - `system.stateVersion` in `iso.nix` is the live ISO's own state version, not
   the target system's — don't confuse it with whatever `stateVersion` the
   installed config specifies.

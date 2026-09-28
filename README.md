@@ -125,5 +125,5 @@ The repo is laid out as:
 
 - `installer.cloneConfig = false` — the live ISO's own config is never copied into `/etc/nixos` on boot. Instead, `templates/default.zip` is unpacked there as a starting point (see Customizing) — `git clone` your own flake or hand-write `configuration.nix` over it if you'd rather start from scratch.
 - `generateAutocomplete = false` — ezconf doesn't run `ezconf-mkoptions` automatically on first start (which would eval the whole target flake on every fresh boot). Use the UI's own `↻ Autocomplete` button once you've loaded a config that actually evaluates.
-- `ezconf`'s terminal panel (and anything run through its buttons) runs as `root`, not as the `nixos` user the graphical session belongs to — `setxkbmap` and GParted need `DISPLAY=:0` set explicitly, and `xhost +local:` is set at session startup, to bridge that gap.
+- `ezconf`'s terminal panel (and anything run through its buttons) runs as `root`, not as the `nixos` user the graphical session belongs to — `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`) and `xhost +local:` is set at session startup, so `setxkbmap`, GParted, etc. can still reach that display.
 - There's no CI or test suite — the only verification available is `nix build` (or `nix eval` for a quicker check) succeeding, and, if actually validating behavior, booting the resulting ISO.

@@ -17,8 +17,7 @@ in
 
   # There's only ever one X display on this live ISO (:0) - export it
   # globally so GUI programs also work from ezconf's terminal panel (which
-  # runs as root, with no DISPLAY of its own otherwise), not just from the
-  # per-button `DISPLAY=:0 ...` commands already set individually below.
+  # runs as root, with no DISPLAY of its own otherwise).
   environment.variables.DISPLAY = ":0";
 
   services.xserver.displayManager.lightdm.enable = true;
@@ -128,35 +127,35 @@ in
         label = "US";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 setxkbmap us";
+        command = "setxkbmap us";
         menu = "Ezmenu/Keyboard layout";
       }
       {
         label = "UK";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 setxkbmap gb";
+        command = "setxkbmap gb";
         menu = "Ezmenu/Keyboard layout";
       }
       {
         label = "German";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 setxkbmap de";
+        command = "setxkbmap de";
         menu = "Ezmenu/Keyboard layout";
       }
       {
         label = "Swedish";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 setxkbmap se";
+        command = "setxkbmap se";
         menu = "Ezmenu/Keyboard layout";
       }
       {
         label = "French";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 setxkbmap fr";
+        command = "setxkbmap fr";
         menu = "Ezmenu/Keyboard layout";
       }
       {
@@ -170,56 +169,56 @@ in
         label = "Launch terminal";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 xterm -rv >/dev/null 2>&1 & disown";
+        command = "xterm -rv >/dev/null 2>&1 & disown";
         menu = "Ezmenu";
       }
       {
         label = "GParted";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 gparted >/dev/null 2>&1 & disown";
+        command = "gparted >/dev/null 2>&1 & disown";
         menu = "Ezmenu/Partition";
       }
       {
         label = "1024x768";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 ezresolution 1024x768";
+        command = "ezresolution 1024x768";
         menu = "Ezmenu/Resolution";
       }
       {
         label = "1280x720";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 ezresolution 1280x720";
+        command = "ezresolution 1280x720";
         menu = "Ezmenu/Resolution";
       }
       {
         label = "1366x768";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 ezresolution 1366x768";
+        command = "ezresolution 1366x768";
         menu = "Ezmenu/Resolution";
       }
       {
         label = "1920x1080";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 ezresolution 1920x1080";
+        command = "ezresolution 1920x1080";
         menu = "Ezmenu/Resolution";
       }
       {
         label = "2560x1440";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 ezresolution 2560x1440";
+        command = "ezresolution 2560x1440";
         menu = "Ezmenu/Resolution";
       }
       {
         label = "3840x2160";
         mode = "install";
         static = true;
-        command = "DISPLAY=:0 ezresolution 3840x2160";
+        command = "ezresolution 3840x2160";
         menu = "Ezmenu/Resolution";
       }
       {
