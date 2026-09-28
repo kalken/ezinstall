@@ -78,8 +78,6 @@ nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
   live ISO's own `stateVersion`) and imports `configuration.nix`.
 - `templates/default.zip` is what actually seeds a fresh boot's `/etc/nixos` —
   swap it for a different backup to change the starting config.
-  `example/flake.nix` is unused by the ISO itself; it's only a hand-written
-  reference kept around for starting from scratch.
 - `configuration.nix` is the live environment: session/desktop setup,
   packages, and ezconf's configuration and buttons.
 - `pkgs/` holds the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/

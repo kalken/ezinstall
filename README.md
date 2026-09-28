@@ -111,8 +111,7 @@ The repo is laid out as:
 - **`iso.nix`** — only what's specific to being a live-CD image (compression, not cloning a config on boot, the live ISO's own `stateVersion`). Imports `configuration.nix`.
 - **`configuration.nix`** — the live session, ezconf's configuration and buttons.
 - **`pkgs/`** — the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/`ezinstall` tools: each is a plain `.sh` script here, wrapped as a `writeShellApplication` derivation by `pkgs/packages.nix`.
-- **`example/flake.nix`** — a minimal, hand-written template for the *target* system's own `/etc/nixos/flake.nix`: imports `./hardware-configuration.nix` (from the Hardware config buttons) and `./ezconf` (ezconf's own `configDir`, merging whatever tabs you edit in its UI). Not built by this repo's flake, and not loaded automatically — just a reference to copy in from the terminal panel if you're starting from scratch instead of `templates/default.zip`.
-- **`templates/default.zip`** — a full `/etc/nixos` backup (flake, `ezconf/` tabs, plugins), unpacked into `/etc/nixos` automatically on every boot, before ezconf's own service starts. This is what actually seeds the ISO's starting config now — replace this zip to change what a fresh boot starts with.
+- **`templates/default.zip`** — a full `/etc/nixos` backup (flake, `ezconf/` tabs, plugins). If present, it's auto-loaded: unpacked into `/etc/nixos` automatically on every boot, before ezconf's own service starts. This is what seeds the ISO's starting config — replace this zip to change what a fresh boot starts with.
 
 ## 📝 Notes
 
