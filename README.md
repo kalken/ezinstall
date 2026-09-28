@@ -40,12 +40,6 @@ Fast syntax/eval check without a full build:
 nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
 ```
 
-If you edited the unpacked copy at `templates/default/` (see Customizing below), re-zip it before building — the build only reads `templates/default.zip`, not the folder:
-
-```sh
-cd templates/default && zip -r -X -q ../default.zip . && cd ../..
-```
-
 Boot the ISO (physical machine, or a VM — tested with QEMU/virt-manager, UEFI or BIOS). It auto-logs in, launches Firefox (kiosk mode) at `http://localhost:9090`, and that's ezconf.
 
 ## 🔐 Login
@@ -119,7 +113,6 @@ The repo is laid out as:
 - **`pkgs/`** — the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/`ezinstall` tools: each is a plain `.sh` script here, wrapped as a `writeShellApplication` derivation by `pkgs/packages.nix`.
 - **`example/flake.nix`** — a minimal, hand-written template for the *target* system's own `/etc/nixos/flake.nix`: imports `./hardware-configuration.nix` (from the Hardware config buttons) and `./ezconf` (ezconf's own `configDir`, merging whatever tabs you edit in its UI). Not built by this repo's flake, and not loaded automatically — just a reference to copy in from the terminal panel if you're starting from scratch instead of `templates/default.zip`.
 - **`templates/default.zip`** — a full `/etc/nixos` backup (flake, `ezconf/` tabs, plugins), unpacked into `/etc/nixos` automatically on every boot, before ezconf's own service starts. This is what actually seeds the ISO's starting config now — replace this zip to change what a fresh boot starts with.
-- **`templates/default/`** — that same backup, unpacked, for editing its files directly (including the beginner-facing `README.md`/`Install.md` inside it). Re-zip it into `templates/default.zip` before building (see Quick Start) — the build never reads this folder itself.
 
 ## 📝 Notes
 
