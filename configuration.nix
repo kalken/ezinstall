@@ -173,6 +173,13 @@ in
         menu = "Ezmenu";
       }
       {
+        label = "Launch Firefox";
+        mode = "install";
+        static = true;
+        command = "firefox >/dev/null 2>&1 & disown";
+        menu = "Ezmenu";
+      }
+      {
         label = "GParted";
         mode = "install";
         static = true;
