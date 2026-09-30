@@ -13,18 +13,7 @@ A bootable NixOS live ISO whose sole purpose is running [ezconf](https://github.
 
 ## 🚀 Quick Start
 
-This repo tracks `kalken/ezconf`'s `master` branch, but `flake.lock` pins an exact commit — check whether it's fallen behind before building:
-
-```sh
-git ls-remote https://github.com/kalken/ezconf master
-grep -A2 '"rev": "' flake.lock | head -1   # what's currently pinned
-```
-
-If they differ, pull in the latest commit first:
-
-```sh
-nix flake update ezconf
-```
+`flake.lock` isn't committed (it's in `.gitignore`), so every build resolves `kalken/ezconf`'s `master` branch fresh — no manual `nix flake update` needed to pick up upstream fixes.
 
 Build the ISO:
 
