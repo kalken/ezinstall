@@ -6,15 +6,13 @@ For what this repo is, how to build/boot it, and what the ISO actually does, see
 
 ## Commands
 
-Before building the ISO, always check whether `kalken/ezconf`'s branch
-tracked in `flake.nix` (check there for the current ref — it has moved
-between `develop` and `testing` before) has moved past the commit currently
-pinned in `flake.lock`, and if so run `nix flake update ezconf` first. The
-user (vibecodingftw@gmail.com) maintains ezconf itself, so whichever branch
-is tracked is a moving target they push fixes to directly — building
-against a stale pin has already caused a real bug
-(the `trustedHosts = [ "*" ]` wildcard silently not working) to ship in the
-ISO after it had already been fixed upstream.
+`flake.lock` is deliberately not committed (it's in `.gitignore`). The user
+(vibecodingftw@gmail.com) maintains `kalken/ezconf` itself and pushes fixes
+to the tracked branch directly, and a stale pin once shipped an
+already-fixed bug (the `trustedHosts = [ "*" ]` wildcard silently not
+working) in the ISO. Since Nix only sees git-tracked files in a flake, an
+ignored lock file is never read back, so every evaluation re-resolves the
+inputs to their latest commits. Don't re-add `flake.lock` to git.
 
 Build the ISO:
 ```
@@ -87,7 +85,7 @@ nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
   assumptions, install logic) belong in `pkgs/ezpartition.sh`/
   `pkgs/ezinstall.sh`.
 - Changes to *which* ezconf version or nixpkgs version is used belong in
-  `flake.nix`/`flake.lock`.
+  `flake.nix`.
 - There's no CI or test suite here; the only verification available is
   `nix build` (or `nix eval` for a quicker check) succeeding, and, if
   actually validating behavior, booting the resulting ISO.
