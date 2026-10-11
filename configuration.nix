@@ -6,7 +6,7 @@ let
 in
 {
   # NixOS doesn't enable these by default. Required for `nixos-install --flake`,
-  # ezinstall's `nix eval` hostname detection, and ezconf's own autocomplete
+  # ezinstall's `nix eval` hostname detection, and eznix's own autocomplete
   # generation (which also shells out to `nix eval` against a flake).
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -16,8 +16,9 @@ in
   services.displayManager.defaultSession = "none+openbox";
 
   # There's only ever one X display on this live ISO (:0) - export it
-  # globally so GUI programs also work from ezconf's terminal panel (which
-  # runs as root, with no DISPLAY of its own otherwise).
+  # globally so GUI programs also work from eznix's terminal panel (a
+  # service of its own, outside the X session, with no DISPLAY otherwise;
+  # its login shell picks this up).
   environment.variables.DISPLAY = ":0";
 
   services.xserver.displayManager.lightdm.enable = true;
@@ -29,14 +30,15 @@ in
   # installation-device.nix sets initialHashedPassword = "" (passwordless
   # login) for the live "nixos" user; override it rather than also setting
   # initialPassword, since NixOS asserts only one of those may be non-null.
-  # Matches ezconf's own web UI password so there's one password to remember.
+  # This is also the password of eznix's web UI: eznix logs people in with
+  # their system password (services.eznix.users below).
   users.users.nixos = {
     initialHashedPassword = lib.mkForce null;
-    initialPassword = "ezconf";
+    initialPassword = "eznix";
   };
 
   # Suppress Firefox's first-run onboarding/privacy-notice screens - this ISO
-  # only ever opens it pointed straight at ezconf, so nobody should see the
+  # only ever opens it pointed straight at eznix, so nobody should see the
   # welcome tab, default-browser prompt, or data-collection notice first.
   # /etc/firefox/policies/policies.json (written below) is a fixed path any
   # firefox binary reads at startup, regardless of which one is launched.
@@ -47,7 +49,7 @@ in
       OverridePostUpdatePage = "";
       DontCheckDefaultBrowser = true;
       DisableTelemetry = true;
-      # Stops the "save password?" prompt when logging into ezconf.
+      # Stops the "save password?" prompt when logging into eznix.
       PasswordManagerEnabled = false;
     };
     preferences = {
@@ -72,14 +74,14 @@ in
     noto-fonts-color-emoji
   ];
 
-  # Launch a browser straight at the ezconf UI on login.
+  # Launch a browser straight at the eznix UI on login.
   services.xserver.displayManager.sessionCommands = ''
-    # ezconf's terminal panel runs commands as root (services.ezconf's own
-    # user), not as the "nixos" user this X session belongs to, so it has no
-    # XAuthority cookie for this display - relax access control for local
-    # connections so setxkbmap (run as root, from the terminal buttons) can
-    # still reach this session's X server regardless of who's connected to
-    # ezconf's web UI or which user ran the command.
+    # eznix's terminal panel runs commands as the "nixos" user, the one this
+    # X session belongs to, but from a service of its own that was not
+    # started inside the session and has no XAuthority cookie for this
+    # display - and GParted is started from there through sudo, as root.
+    # Relax access control for local connections so both can reach this
+    # session's X server (setxkbmap, xterm, gparted from the terminal buttons).
     ${pkgs.xhost}/bin/xhost +local: || true
 
     ${pkgs.firefox}/bin/firefox --new-window --kiosk "http://localhost:9090" &
@@ -89,7 +91,7 @@ in
     # config (unlike fluxbox's init file, this one's too large to hand-write
     # and still needs its keybindings/mouse bindings) and patch just the
     # <theme><name> line before openbox-session starts and reads it. Onyx is
-    # a plain dark gray, close enough to ezconf's own dark look; barely
+    # a plain dark gray, close enough to eznix's own dark look; barely
     # visible anyway since Firefox launches fullscreen straight away.
     mkdir -p "$HOME/.config/openbox"
     sed 's|<name>Clearlooks</name>|<name>Onyx</name>|' \
@@ -98,31 +100,39 @@ in
 
   environment.systemPackages = [ pkgs.gparted pkgs.xterm ezinstall ezpartition ezhwconfig ezdialog ezresolution ];
 
-  # --- ezconf --------------------------------------------------------------
-  services.ezconf = {
+  # --- eznix ---------------------------------------------------------------
+  # Nothing in eznix runs as root: the editor is its own account, and the
+  # terminal panel (so every button below) runs as "nixos". What needs root
+  # says so with sudo, which that user has without a password on a live image.
+  services.eznix = {
     enable = true;
-    https = false; # localhost-only ephemeral live session, avoid self-signed cert friction
+    users = [ "nixos" ]; # who logs in, with the system password set above, and whose terminal it is
+    enableHttps = false; # ephemeral live session, avoid self-signed cert friction
     listen = "0.0.0.0"; # reachable from other machines on the network, not just localhost
-    trustedHosts = [ "*" ]; # disable the Host-header/CSRF check so any address/hostname can connect
-    # configDir intentionally left at ezconf's own default ("/etc/nixos/ezconf")
-    # rather than pointed at /etc/nixos itself - ezconf's generated default.nix
-    # and *.json tabs stay confined to that subdirectory instead of landing
-    # directly in /etc/nixos, where ezinstall's `cp -a /etc/nixos/.` would
-    # otherwise carry them permanently into the installed system's top-level
-    # config dir.
+    openFirewall = true;
+    hosts = [ "*" ]; # accept whatever address or host name the page is opened by
+    # flake and configDir intentionally left at eznix's own defaults
+    # ("/etc/nixos" and "/etc/nixos/eznix"): the *.json tabs stay in that
+    # subfolder, which the starting config in templates/default.zip imports
+    # with eznix.lib.jsonDir, and ezinstall's `cp -a /etc/nixos/.` carries the
+    # whole flake into the installed system as it is.
     mode = "install"; # dedicated install image: show mode = "install" buttons in their own row
-    generateAutocomplete = false; # skip the first-start ezconf-mkoptions eval; use the UI's Autocomplete button instead
-    auth = {
-      method = "custom";
-      username = "nixos";
-      password = "ezconf";
-    };
+    # (Suggestions are never generated by themselves in eznix: the page's
+    # Autocomplete button does it, once a config that evaluates is loaded.)
 
-    # ezconf's built-in terminal panel is a real interactive shell — use it to
+    # eznix's built-in terminal panel is a real interactive shell — use it to
     # load your system (git clone a flake repo, or write configuration.nix by
     # hand) and to partition/mount your disk at /mnt however that config
     # expects (disko, manual parted/mkfs, ...) before clicking Install NixOS.
     buttons = [
+      {
+        # eznix's own Autocomplete button, in the page's header, is left out
+        # in install mode; this is the same command in the install row.
+        label = "Autocomplete";
+        mode = "install";
+        static = true;
+        command = "eznix-autocomplete";
+      }
       {
         label = "US";
         mode = "install";
@@ -183,7 +193,7 @@ in
         label = "GParted";
         mode = "install";
         static = true;
-        command = "gparted >/dev/null 2>&1 & disown";
+        command = "sudo -E gparted >/dev/null 2>&1 & disown";
         menu = "Ezmenu/Partition";
       }
       {
@@ -232,28 +242,28 @@ in
         label = "Partition disks (guided)";
         mode = "install";
         static = true;
-        command = "ezpartition";
+        command = "sudo ezpartition";
         menu = "Ezmenu/Partition";
       }
       {
         label = "With disks";
         mode = "install";
         static = true;
-        command = "ezhwconfig";
+        command = "sudo ezhwconfig";
         menu = "Ezmenu/Hardware config";
       }
       {
         label = "Without disks";
         mode = "install";
         static = true;
-        command = "ezhwconfig --no-filesystems";
+        command = "sudo ezhwconfig --no-filesystems";
         menu = "Ezmenu/Hardware config";
       }
       {
         label = "Install NixOS";
         mode = "install";
         static = true;
-        command = "ezinstall";
+        command = "sudo ezinstall";
         save_first = true;
         menu = "Ezmenu";
       }
@@ -261,7 +271,7 @@ in
         label = "Reboot";
         mode = "install";
         static = true;
-        command = "reboot";
+        command = "sudo reboot";
         menu = "Ezmenu";
       }
     ];

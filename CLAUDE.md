@@ -7,10 +7,10 @@ For what this repo is, how to build/boot it, and what the ISO actually does, see
 ## Commands
 
 `flake.lock` is deliberately not committed (it's in `.gitignore`). The user
-(vibecodingftw@gmail.com) maintains `kalken/ezconf` itself and pushes fixes
+(vibecodingftw@gmail.com) maintains `kalken/eznix` itself and pushes fixes
 to the tracked branch directly, and a stale pin once shipped an
-already-fixed bug (the `trustedHosts = [ "*" ]` wildcard silently not
-working) in the ISO. Since Nix only sees git-tracked files in a flake, an
+already-fixed bug (ezconf's `trustedHosts = [ "*" ]` wildcard silently not
+working, when the ISO was still built on ezconf) in the ISO. Since Nix only sees git-tracked files in a flake, an
 ignored lock file is never read back, so every evaluation re-resolves the
 inputs to their latest commits. Don't re-add `flake.lock` to git.
 
@@ -24,7 +24,7 @@ the fast, ask-free way to sanity-check a change.
 
 Evaluate without building, for a fast syntax/eval check:
 ```
-nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
+nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 ```
 
 ## Non-obvious gotchas
@@ -46,7 +46,7 @@ nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
   generic stub.
 - **Classic (non-flake) `nixos-install --root /mnt` looks for config at
   `$mountPoint/etc/nixos/configuration.nix`**, not `/etc/nixos/configuration.nix`
-  — even though ezconf edits the latter. `ezinstall` copies all of `/etc/nixos`
+  — even though eznix edits the latter. `ezinstall` copies all of `/etc/nixos`
   to `/mnt/etc/nixos` before installing to make that resolve with no extra
   flags (and as a side effect, leaves the installed system with a real
   `/etc/nixos` for future `nixos-rebuild` calls).
@@ -58,12 +58,37 @@ nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
   for already-queued events, it doesn't create new ones. `ezparted` runs
   `udevadm trigger --settle` on each formatted partition to force udev to
   re-probe.
-- **Commands run through ezconf's terminal panel run as `root`**, not as the
-  `nixos` user the graphical X session belongs to — `DISPLAY` is exported
-  globally (`environment.variables.DISPLAY = ":0"`, since there's only ever
-  one X display on this live ISO) so `setxkbmap`/`gparted`/etc. don't need it
-  set per-command, and `xhost +local:` is set in `sessionCommands` to let
-  root's shell reach that display at all.
+- **Commands run through eznix's terminal panel run as the `nixos` user**,
+  never as root (nothing in eznix does; until 2026-10-12 the ISO was built on
+  ezconf, whose panel was root's). So every button whose command needs root
+  says `sudo` (`sudo ezpartition`, `sudo ezhwconfig`, `sudo ezinstall`,
+  `sudo -E gparted`, `sudo reboot`), which works without a password because
+  the installer image sets `security.sudo.wheelNeedsPassword = false`. The
+  scripts in `pkgs/` still assume they are root and are not changed for it. A
+  new button that needs root must say `sudo` too, in `configuration.nix` and
+  in the buttons inside `templates/default.zip`.
+- The panel is a service of its own, started outside the X session:
+  `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`,
+  since there's only ever one X display on this live ISO) so
+  `setxkbmap`/`gparted`/etc. don't need it set per-command, and
+  `xhost +local:` is set in `sessionCommands` to let that shell, and root
+  through sudo, reach the display at all.
+- **`/etc/nixos` is unpacked by root and written by an unprivileged
+  service.** eznix's own activation script gives the flake to the `eznix`
+  group (`flakeWritable`, on by default); `iso.nix` makes that script depend
+  on the one that unpacks `templates/default.zip`, so the order is fixed.
+  Don't unpack anywhere later than activation.
+- **eznix shows no Autocomplete button in its header in install mode**, so
+  the ISO has one of its own in the install row, running the same
+  `eznix-autocomplete`.
+- **eznix logs in with system passwords on NixOS** (its `password` option is
+  refused by the NixOS module), so the page's login is the `nixos` user's
+  own password, set in `configuration.nix`.
+- **`templates/default.zip` is built by hand**: unpack, edit, zip again
+  (`zip -r -X`). Its `flake.nix` imports the settings with
+  `inputs.eznix.lib.jsonDir ./eznix`; eznix installs no loader file in that
+  folder. Evaluate it after a change:
+  `nix eval path:DIR#nixosConfigurations.default.config.system.build.toplevel.drvPath`.
 - `system.stateVersion` in `iso.nix` is the live ISO's own state version, not
   the target system's — don't confuse it with whatever `stateVersion` the
   installed config specifies.
@@ -72,19 +97,19 @@ nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
 
 - `iso.nix` holds only what's specific to being a live-CD image (squashfs
   compression, not cloning a config into `/etc/nixos` on boot, restoring
-  `templates/default.zip` into `/etc/nixos` before ezconf's service starts, the
+  `templates/default.zip` into `/etc/nixos` before eznix's service starts, the
   live ISO's own `stateVersion`) and imports `configuration.nix`.
 - `templates/default.zip` is what actually seeds a fresh boot's `/etc/nixos` —
   swap it for a different backup to change the starting config.
 - `configuration.nix` is the live environment: session/desktop setup,
-  packages, and ezconf's configuration and buttons.
+  packages, and eznix's configuration and buttons.
 - `pkgs/` holds the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/
   `ezinstall` tools — each a plain `.sh` script, wrapped as a
   `writeShellApplication` derivation in `pkgs/packages.nix`. Changes to the
   installed system's *behavior toward the target machine* (partitioning
   assumptions, install logic) belong in `pkgs/ezpartition.sh`/
   `pkgs/ezinstall.sh`.
-- Changes to *which* ezconf version or nixpkgs version is used belong in
+- Changes to *which* eznix version or nixpkgs version is used belong in
   `flake.nix`.
 - There's no CI or test suite here; the only verification available is
   `nix build` (or `nix eval` for a quicker check) succeeding, and, if

@@ -1,28 +1,28 @@
 {
-  description = "Minimal bootable NixOS live ISO with ezconf and a graphical browser";
+  description = "Minimal bootable NixOS live ISO with eznix and a graphical browser";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    ezconf.url = "github:kalken/ezconf/master";
-    ezconf.inputs.nixpkgs.follows = "nixpkgs";
+    eznix.url = "github:kalken/eznix";
+    eznix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, ezconf }:
+  outputs = { self, nixpkgs, eznix }:
     let
       system = "x86_64-linux";
     in
     {
-      nixosConfigurations.ezconf-iso = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.eznix-iso = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-          ezconf.nixosModules.default
+          eznix.nixosModules.default
           ./iso.nix
         ];
       };
 
       packages.${system}.default =
-        self.nixosConfigurations.ezconf-iso.config.system.build.isoImage;
+        self.nixosConfigurations.eznix-iso.config.system.build.isoImage;
     };
 }

@@ -16,7 +16,7 @@
   # connected output (there's normally exactly one on the machine being
   # installed to) rather than requiring the caller to know its name, which
   # varies (eDP-1, HDMI-1, Virtual-1 in a VM, ...). Backs the resolution
-  # buttons in the ezconf terminal panel's Ezmenu.
+  # buttons in the eznix terminal panel's Ezmenu.
   ezresolution = pkgs.writeShellApplication {
     name = "ezresolution";
     runtimeInputs = with pkgs; [ xrandr gawk ];
@@ -24,9 +24,9 @@
   };
 
   # Generates hardware-configuration.nix for whatever's mounted at /mnt, into
-  # /etc/nixos (where ezconf edits the config being installed) - pass
+  # /etc/nixos (where eznix edits the config being installed) - pass
   # --no-filesystems to skip fileSystems/swapDevices (e.g. when disko already
-  # owns disk layout). Exposed as two ezconf buttons ("with disks" / "without
+  # owns disk layout). Exposed as two eznix buttons ("with disks" / "without
   # disks") rather than being run automatically by ezpartition/ezinstall, so
   # it's always an explicit choice.
   ezhwconfig = pkgs.writeShellApplication {

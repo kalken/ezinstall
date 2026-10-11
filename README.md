@@ -1,19 +1,19 @@
 # ezinstall
 
-A bootable NixOS live ISO whose sole purpose is running [ezconf](https://github.com/kalken/ezconf) as a graphical installer. Boot it, a browser opens straight into the ezconf UI, and from there you load a target system's config and either install it fresh or reconfigure a running machine.
+A bootable NixOS live ISO whose sole purpose is running [eznix](https://github.com/kalken/eznix) as a graphical installer. Boot it, a browser opens straight into the eznix UI, and from there you load a target system's config and either install it fresh or reconfigure a running machine.
 
 ## ✨ Features
 
-- Boots straight into a browser pointed at ezconf — no login prompt beyond ezconf's own
+- Boots straight into a browser pointed at eznix — no login prompt beyond eznix's own
 - Guided disk partitioner (`ezparted`): GPT (ESP + optional swap + root), optional LUKS encryption, configurable boot/swap sizes
 - One-click installer (`ezinstall`): flake or classic `configuration.nix`
 - On-demand `hardware-configuration.nix` generation (`ezhwconfig`), with or without disk layout
 - Reachable from other machines on the network, not just the ISO's own screen
-- Keyboard layout switcher, GParted, and ezconf's own terminal panel for anything the guided tools don't cover
+- Keyboard layout switcher, GParted, and eznix's own terminal panel for anything the guided tools don't cover
 
 ## 🚀 Quick Start
 
-`flake.lock` isn't committed (it's in `.gitignore`), so every build resolves `kalken/ezconf`'s `master` branch fresh — no manual `nix flake update` needed to pick up upstream fixes.
+`flake.lock` isn't committed (it's in `.gitignore`), so every build resolves `kalken/eznix`'s default branch fresh — no manual `nix flake update` needed to pick up upstream fixes.
 
 Build the ISO:
 
@@ -26,30 +26,31 @@ The result lands at `./result/iso/*.iso`. It's a multi-GB image and takes a whil
 Fast syntax/eval check without a full build:
 
 ```sh
-nix eval .#nixosConfigurations.ezconf-iso.config.system.build.isoImage.outPath
+nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 ```
 
-Boot the ISO (physical machine, or a VM — tested with QEMU/virt-manager, UEFI or BIOS). It auto-logs in, launches Firefox (kiosk mode) at `http://localhost:9090`, and that's ezconf.
+Boot the ISO (physical machine, or a VM — tested with QEMU/virt-manager, UEFI or BIOS). It auto-logs in, launches Firefox (kiosk mode) at `http://localhost:9090`, and that's eznix.
 
 ## 🔐 Login
 
 | | |
 |---|---|
 | Username | `nixos` |
-| Password | `ezconf` |
+| Password | `eznix` |
 
 Fixed credentials over plain HTTP — fine for an ephemeral live session, not something to expose beyond a trusted network.
 
 ## 🌐 Network Access
 
-ezconf listens on `0.0.0.0`, so any machine on the same network can open `http://<iso-ip>:9090` — not just the ISO's own screen. This is deliberate: it means anyone on that network can reach and use it while the ISO is booted.
+eznix listens on `0.0.0.0`, so any machine on the same network can open `http://<iso-ip>:9090` — not just the ISO's own screen. This is deliberate: it means anyone on that network can reach and use it while the ISO is booted.
 
 ## 🖥️ Using the ISO
 
-The ezconf terminal panel's button bar (all buttons show together — this is a dedicated install image, so `mode = "install"` is set throughout):
+The eznix terminal panel's button bar (all buttons show together — this is a dedicated install image, so `mode = "install"` is set throughout):
 
 | Button | What it does |
 |---|---|
+| **Autocomplete** | Generates the suggestions for options and packages from the loaded config (`eznix-autocomplete`) |
 | **Keyboard layout** ▸ US / UK / German / Swedish / French | Switches the live session's keyboard layout (`setxkbmap`) |
 | **List disks** | `lsblk` — see what's attached before partitioning |
 | **Partition** ▸ Open GParted | Graphical partitioner, for anything the guided tool doesn't cover |
@@ -59,7 +60,7 @@ The ezconf terminal panel's button bar (all buttons show together — this is a 
 | **Install NixOS** | Runs `ezinstall` (below) |
 | **Reboot** | Reboots the machine |
 
-ezconf's own terminal panel is a real interactive shell underneath all of this — use it to `git clone` a flake, hand-write a `configuration.nix`, run `disko`, or do anything else these buttons don't cover, before clicking Install NixOS.
+eznix's own terminal panel is a real interactive shell underneath all of this, running as the `nixos` user (`sudo` needs no password there) — use it to `git clone` a flake, hand-write a `configuration.nix`, run `disko`, or do anything else these buttons don't cover, before clicking Install NixOS.
 
 ## 💽 Guided Partitioning — `ezparted`
 
@@ -76,7 +77,7 @@ From there, load your actual config — clone a flake, or write `configuration.n
 
 ## 🔧 Hardware Config — `ezhwconfig`
 
-Generates `hardware-configuration.nix` for whatever's mounted at `/mnt`, written to `/etc/nixos` (where ezconf edits the config being installed). Two variants, since only you know whether something else — `disko`, a hand-written config — already owns disk layout:
+Generates `hardware-configuration.nix` for whatever's mounted at `/mnt`, written to `/etc/nixos` (where eznix edits the config being installed). Two variants, since only you know whether something else — `disko`, a hand-written config — already owns disk layout:
 
 - **With disks** — full generation, including `fileSystems`/`swapDevices`. Use this for a `parted`/`mkfs`-formatted disk (e.g. via GParted) where nothing else defines them.
 - **Without disks** — skips `fileSystems`/`swapDevices`, leaving them to `disko` or your own config.
@@ -96,15 +97,15 @@ Re-run-safe — it never touches partitioning, so fixing a config error and clic
 
 The repo is laid out as:
 
-- **`flake.nix`** — wires nixpkgs, the pinned `ezconf` input, and `iso.nix` into the `ezconf-iso` NixOS system that gets built.
+- **`flake.nix`** — wires nixpkgs, the `eznix` input, and `iso.nix` into the `eznix-iso` NixOS system that gets built.
 - **`iso.nix`** — only what's specific to being a live-CD image (compression, not cloning a config on boot, the live ISO's own `stateVersion`). Imports `configuration.nix`.
-- **`configuration.nix`** — the live session, ezconf's configuration and buttons.
+- **`configuration.nix`** — the live session, eznix's configuration and buttons.
 - **`pkgs/`** — the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/`ezinstall` tools: each is a plain `.sh` script here, wrapped as a `writeShellApplication` derivation by `pkgs/packages.nix`.
-- **`templates/default.zip`** — a full `/etc/nixos` backup (flake, `ezconf/` tabs, plugins). If present, it's auto-loaded: unpacked into `/etc/nixos` automatically on every boot, before ezconf's own service starts. This is what seeds the ISO's starting config — replace this zip to change what a fresh boot starts with.
+- **`templates/default.zip`** — a full `/etc/nixos` backup (flake, `eznix/` tabs, plugins). If present, it's auto-loaded: unpacked into `/etc/nixos` automatically on every boot, before eznix's own service starts. This is what seeds the ISO's starting config — replace this zip to change what a fresh boot starts with.
 
 ## 📝 Notes
 
 - `installer.cloneConfig = false` — the live ISO's own config is never copied into `/etc/nixos` on boot. Instead, `templates/default.zip` is unpacked there as a starting point (see Customizing) — `git clone` your own flake or hand-write `configuration.nix` over it if you'd rather start from scratch.
-- `generateAutocomplete = false` — ezconf doesn't run `ezconf-mkoptions` automatically on first start (which would eval the whole target flake on every fresh boot). Use the UI's own `↻ Autocomplete` button once you've loaded a config that actually evaluates.
-- `ezconf`'s terminal panel (and anything run through its buttons) runs as `root`, not as the `nixos` user the graphical session belongs to — `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`) and `xhost +local:` is set at session startup, so `setxkbmap`, GParted, etc. can still reach that display.
+- Suggestions are never generated automatically (that would eval the whole target flake on every fresh boot). Use the **Autocomplete** button in the install row once you've loaded a config that actually evaluates; it runs `eznix-autocomplete` in the terminal.
+- Nothing in eznix runs as root: its terminal panel (and anything run through its buttons) runs as the `nixos` user, and the buttons that need root (partitioning, hardware config, install, GParted, reboot) say `sudo`, which that user has without a password on the live image. The panel is a service of its own, started outside the graphical session, so `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`) and `xhost +local:` is set at session startup, so `setxkbmap`, GParted, etc. can still reach that display.
 - There's no CI or test suite — the only verification available is `nix build` (or `nix eval` for a quicker check) succeeding, and, if actually validating behavior, booting the resulting ISO.
