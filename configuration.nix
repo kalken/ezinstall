@@ -108,7 +108,7 @@ in
     enable = true;
     users = [ "nixos" ]; # who logs in, with the system password set above, and whose terminal it is
     enableHttps = false; # ephemeral live session, avoid self-signed cert friction
-    listen = "0.0.0.0"; # reachable from other machines on the network, not just localhost
+    interfaces = [ ]; # every interface, whatever this machine's are called: reachable from other machines on the network, not just here
     openFirewall = true;
     hosts = [ "*" ]; # accept whatever address or host name the page is opened by
     # flake and configDir intentionally left at eznix's own defaults
