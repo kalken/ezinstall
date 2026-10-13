@@ -14,7 +14,7 @@ A bootable NixOS live ISO whose sole purpose is running [eznix](https://github.c
 ## 🚀 Quick Start
 
 ```sh
-nix build 'github:kalken/ezinstall'
+nix build --no-write-lock-file 'github:kalken/ezinstall'
 ```
 
 The ISO lands at `./result/iso/*.iso`. It's a multi-GB image and takes a while to build.
@@ -99,5 +99,5 @@ The repo is laid out as:
 - Suggestions are never generated automatically (that would eval the whole target flake on every fresh boot). Use the **Autocomplete** button in the install row once you've loaded a config that actually evaluates; it runs `eznix-autocomplete` in the terminal.
 - Nothing in eznix runs as root: its terminal panel (and anything run through its buttons) runs as the `nixos` user, and the buttons that need root (partitioning, hardware config, install, GParted, reboot) say `sudo`, which that user has without a password on the live image. The panel is a service of its own, started outside the graphical session, so `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`) and `xhost +local:` is set at session startup, so `setxkbmap`, GParted, etc. can still reach that display.
 - From a checkout it is `nix build` in the folder, and `nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath` checks that it evaluates without building anything.
-- `flake.lock` isn't committed (it's in `.gitignore`), so every build takes `kalken/eznix`'s default branch as it is then — no `nix flake update` needed to pick up fixes.
+- `flake.lock` isn't committed (it's in `.gitignore`), so every build takes `kalken/eznix`'s default branch as it is then — no `nix flake update` needed to pick up fixes. It is also why the command above says `--no-write-lock-file`: built straight from GitHub, Nix has nowhere to write one and stops without it.
 - There's no CI or test suite — the only verification available is `nix build` (or `nix eval` for a quicker check) succeeding, and, if actually validating behavior, booting the resulting ISO.
