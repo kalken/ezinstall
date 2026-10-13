@@ -99,6 +99,15 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   is raised by hand when a release comes out, in May and November, here and
   in eznix. Evaluated on a Mac after the change (the ISO's image and the
   installed system's derivation, both 26.05); no ISO was built or booted.
+- **The ISO must stay under 2 GiB** (2048 MiB), GitHub's limit for a release
+  file; the user asked for that on 2026-10-13. `iso.nix` gets there with zstd
+  level 19 and by switching off speechd, pipewire, documentation and ZFS.
+  `linux-firmware` (805 MiB, already compressed) stays, since the installer
+  has to work on real hardware. The ISO is about 54 MiB larger than its
+  squashfs. Measured but not applied: `fonts.enableDefaultPackages = false`
+  saves another 64 MiB (CJK fonts), xz another 60; turning off
+  `system.tools.nixos-rebuild` saves nothing (python stays). Check the size
+  of `result/iso/*.iso` after anything that adds packages.
 - `system.stateVersion` in `iso.nix` is the live ISO's own state version, not
   the target system's — don't confuse it with whatever `stateVersion` the
   installed config specifies.
