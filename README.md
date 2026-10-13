@@ -40,7 +40,6 @@ The eznix terminal panel's button bar (all buttons show together — this is a d
 
 | Button | What it does |
 |---|---|
-| **Autocomplete** | Generates the suggestions for options and packages from the loaded config (`eznix-autocomplete`) |
 | **Keyboard layout** ▸ US / UK / German / Swedish / French | Switches the live session's keyboard layout (`setxkbmap`) |
 | **List disks** | `lsblk` — see what's attached before partitioning |
 | **Partition** ▸ Open GParted | Graphical partitioner, for anything the guided tool doesn't cover |
@@ -96,7 +95,7 @@ The repo is laid out as:
 ## 📝 Notes
 
 - `installer.cloneConfig = false` — the live ISO's own config is never copied into `/etc/nixos` on boot. Instead, `templates/default.zip` is unpacked there as a starting point (see Customizing) — `git clone` your own flake or hand-write `configuration.nix` over it if you'd rather start from scratch.
-- Suggestions are never generated automatically (that would eval the whole target flake on every fresh boot). Use the **Autocomplete** button in the install row once you've loaded a config that actually evaluates; it runs `eznix-autocomplete` in the terminal.
+- Suggestions are never generated automatically (that would eval the whole target flake on every fresh boot). Use the **Autocomplete** button at the top of the page once you've loaded a config that actually evaluates; it runs `eznix-autocomplete` in the terminal.
 - Nothing in eznix runs as root: its terminal panel (and anything run through its buttons) runs as the `nixos` user, and the buttons that need root (partitioning, hardware config, install, GParted, reboot) say `sudo`, which that user has without a password on the live image. The panel is a service of its own, started outside the graphical session, so `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`) and `xhost +local:` is set at session startup, so `setxkbmap`, GParted, etc. can still reach that display.
 - From a checkout it is `nix build` in the folder, and `nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath` checks that it evaluates without building anything.
 - `flake.lock` isn't committed (it's in `.gitignore`), so every build takes `kalken/eznix`'s default branch as it is then — no `nix flake update` needed to pick up fixes. It is also why the command above says `--no-write-lock-file`: built straight from GitHub, Nix has nowhere to write one and stops without it.

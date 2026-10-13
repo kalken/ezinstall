@@ -126,14 +126,6 @@ in
     # expects (disko, manual parted/mkfs, ...) before clicking Install NixOS.
     buttons = [
       {
-        # eznix's own Autocomplete button, in the page's header, is left out
-        # in install mode; this is the same command in the install row.
-        label = "Autocomplete";
-        mode = "install";
-        static = true;
-        command = "eznix-autocomplete";
-      }
-      {
         label = "US";
         mode = "install";
         static = true;

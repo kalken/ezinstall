@@ -78,9 +78,10 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   group (`flakeWritable`, on by default); `iso.nix` makes that script depend
   on the one that unpacks `templates/default.zip`, so the order is fixed.
   Don't unpack anywhere later than activation.
-- **eznix shows no Autocomplete button in its header in install mode**, so
-  the ISO has one of its own in the install row, running the same
-  `eznix-autocomplete`.
+- **Autocomplete is eznix's own button, in the page's header**, in install
+  mode too since 2026-10-13. Before, eznix left it out there and the ISO had
+  one of its own in the install row; the user wanted it back at the top and
+  the row's removed ("it does not serve a purpose"). Don't add one again.
 - **eznix logs in with system passwords on NixOS** (its `password` option is
   refused by the NixOS module), so the page's login is the `nixos` user's
   own password, set in `configuration.nix`.
