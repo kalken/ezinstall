@@ -2,7 +2,7 @@
   description = "Minimal bootable NixOS live ISO with eznix and a graphical browser";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     eznix.url = "github:kalken/eznix";
     eznix.inputs.nixpkgs.follows = "nixpkgs";

@@ -39,5 +39,5 @@ in
 
   # This is the live ISO's own state version, not the target system's - don't
   # confuse it with whatever stateVersion the installed config specifies.
-  system.stateVersion = "26.11";
+  system.stateVersion = "26.05";
 }

@@ -89,6 +89,15 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   `inputs.eznix.lib.jsonDir ./eznix`; eznix installs no loader file in that
   folder. Evaluate it after a change:
   `nix eval path:DIR#nixosConfigurations.default.config.system.build.toplevel.drvPath`.
+- **Both the ISO and what it installs build on the stable release**, `26.05`
+  at the time: `nixpkgs.url` in `flake.nix` and in the `flake.nix` inside
+  `templates/default.zip`, and `stateVersion` in `iso.nix` and in the zip's
+  `eznix/system/nix.json`. Until 2026-10-13 all four said `nixos-unstable`
+  and `26.11`, while eznix's own templates were on the stable release; the
+  user had them made the same ("make them both use stable then"). The number
+  is raised by hand when a release comes out, in May and November, here and
+  in eznix. Evaluated on a Mac after the change (the ISO's image and the
+  installed system's derivation, both 26.05); no ISO was built or booted.
 - `system.stateVersion` in `iso.nix` is the live ISO's own state version, not
   the target system's — don't confuse it with whatever `stateVersion` the
   installed config specifies.
