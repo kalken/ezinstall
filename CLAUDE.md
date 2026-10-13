@@ -133,8 +133,12 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 - There's no CI or test suite here; the only verification available is
   `nix build` (or `nix eval` for a quicker check) succeeding, and, if
   actually validating behavior, booting the resulting ISO.
-- Commit changes locally (no need to ask) once they're done — don't leave
-  them sitting uncommitted. Still don't push without being asked.
+- Never commit without being asked: a change stays in the working tree
+  until the user says to commit it, and the report says it is uncommitted.
+  (The user's rule since 2026-10-13; before, this file said to commit
+  locally without asking.) Never push without being asked either.
+- Always commit to `develop` first. Only merge `develop` into `main`; never
+  commit to `main`.
 - Don't add `Co-Authored-By: Claude ...` (or any other Claude/Anthropic
   attribution) to commit messages or PR descriptions in this repo.
 - Don't update this file for every small change — keep it to non-obvious
