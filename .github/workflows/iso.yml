@@ -1,0 +1,47 @@
+# Builds the ISO on GitHub's runner, by hand (Actions, "Build ISO", Run workflow),
+# and keeps it as a workflow artifact for 30 days. No release is made.
+name: Build ISO
+
+on:
+  workflow_dispatch:
+
+jobs:
+  iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      # The runner has about 20-30 GB free; the Nix store and the ISO come close.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force || true
+          df -h /
+
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      # No flake.lock in the repository: this takes nixpkgs 26.05 and eznix's main as they are now.
+      - name: Build
+        run: nix build --no-write-lock-file --print-build-logs
+
+      # 2 GiB is GitHub's limit for a release file; the ISO is kept under it.
+      - name: Check size
+        run: |
+          iso=$(echo result/iso/*.iso)
+          size=$(stat -L -c %s "$iso")
+          echo "$(basename "$iso"): $((size / 1048576)) MiB"
+          echo "ISO: $((size / 1048576)) MiB" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$size" -ge $((2048 * 1048576)) ]; then
+            echo "::error::The ISO is over 2 GiB, GitHub's limit for a release file"
+            exit 1
+          fi
+          cp -L "$iso" .
+
+      # The ISO is already compressed; zipping it again only costs time.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ezinstall-iso
+          path: '*.iso'
+          compression-level: 0
+          retention-days: 30

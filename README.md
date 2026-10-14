@@ -100,4 +100,5 @@ The repo is laid out as:
 - To keep the image under 2 GB, the live session has no sound, no speech synthesis, no manuals or `man` pages, and no ZFS support (so no installing onto ZFS from it). Firmware for Wi-Fi and graphics is all there.
 - From a checkout it is `nix build` in the folder, and `nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath` checks that it evaluates without building anything.
 - `flake.lock` isn't committed (it's in `.gitignore`), so every build takes `kalken/eznix`'s default branch as it is then — no `nix flake update` needed to pick up fixes. It is also why the command above says `--no-write-lock-file`: built straight from GitHub, Nix has nowhere to write one and stops without it.
-- There's no CI or test suite — the only verification available is `nix build` (or `nix eval` for a quicker check) succeeding, and, if actually validating behavior, booting the resulting ISO.
+- GitHub can build the ISO: Actions, **Build ISO**, Run workflow. It is kept there as a download (the run's artifact) for 30 days, and the run fails if the ISO is over 2 GiB. No release is made.
+- There's no test suite — the only verification available is `nix build` (or `nix eval` for a quicker check) succeeding, and, if actually validating behavior, booting the resulting ISO.
