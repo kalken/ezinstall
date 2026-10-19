@@ -110,7 +110,10 @@ in
     enableHttps = false; # ephemeral live session, avoid self-signed cert friction
     interfaces = [ ]; # every interface, whatever this machine's are called: reachable from other machines on the network, not just here
     openFirewall = true;
-    hosts = [ "*" ]; # accept whatever address or host name the page is opened by
+    # No hosts = [ "*" ]: an address is always accepted, and eznix adds this
+    # machine's name (nixos, nixos.local) by itself. "*" let any website that
+    # points its own name at this machine (DNS rebinding) log in with the
+    # public password above and open a root shell; removed 2026-10-19.
     # flake and configDir intentionally left at eznix's own defaults
     # ("/etc/nixos" and "/etc/nixos/eznix"): the *.json tabs stay in that
     # subfolder, which the starting config in templates/default.zip imports
