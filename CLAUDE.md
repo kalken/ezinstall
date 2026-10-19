@@ -35,7 +35,7 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   `--root /mnt` silently writes to `/mnt/etc/nixos` instead. `ezhwconfig`
   works around this by generating into a throwaway temp dir and copying just
   `hardware-configuration.nix` out to `/etc/nixos`. Hardware-config
-  generation is deliberately *not* run automatically by `ezparted`/
+  generation is deliberately *not* run automatically by `ezpartition`/
   `ezinstall` — it's `ezhwconfig`'s own job, exposed as explicit buttons, so
   it's always a choice rather than something baked into another script's
   logic.
@@ -55,7 +55,7 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   device doesn't itself generate a udev event, so a partition can show blank
   in `lsblk` indefinitely after formatting even though `blkid <dev>` (a real
   live probe) sees it fine. `udevadm settle` doesn't fix this — it only waits
-  for already-queued events, it doesn't create new ones. `ezparted` runs
+  for already-queued events, it doesn't create new ones. `ezpartition` runs
   `udevadm trigger --settle` on each formatted partition to force udev to
   re-probe.
 - **Commands run through eznix's terminal panel run as the `nixos` user**,

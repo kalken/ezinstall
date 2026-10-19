@@ -111,7 +111,7 @@ in
     interfaces = [ ]; # every interface, whatever this machine's are called: reachable from other machines on the network, not just here
     openFirewall = true;
     # No hosts = [ "*" ]: an address is always accepted, and eznix adds this
-    # machine's name (nixos, nixos.local) by itself. "*" let any website that
+    # machine's name (nixos) by itself. "*" let any website that
     # points its own name at this machine (DNS rebinding) log in with the
     # public password above and open a root shell; removed 2026-10-19.
     # flake and configDir intentionally left at eznix's own defaults
