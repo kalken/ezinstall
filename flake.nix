@@ -15,6 +15,7 @@
     {
       nixosConfigurations.eznix-iso = nixpkgs.lib.nixosSystem {
         inherit system;
+        specialArgs = { inherit eznix; };
         modules = [
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
           eznix.nixosModules.default

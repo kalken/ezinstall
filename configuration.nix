@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, eznix, ... }:
 
 let
   tools = import ./pkgs/packages.nix { inherit pkgs; };
@@ -133,6 +133,10 @@ in
         {
           name = "Start from ezinstall";
           url = "https://github.com/kalken/ezinstall/tree/main/templates";
+        }
+        {
+          name = "Start from eznix";
+          url = "${eznix.packages.${pkgs.stdenv.hostPlatform.system}.eznix}/share/eznix/templates";
         }
       ];
     };
