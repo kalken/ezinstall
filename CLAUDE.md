@@ -73,11 +73,12 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   `setxkbmap`/`gparted`/etc. don't need it set per-command, and
   `xhost +local:` is set in `sessionCommands` to let that shell, and root
   through sudo, reach the display at all.
-- **`/etc/nixos` is unpacked by root and written by an unprivileged
-  service.** eznix's own activation script gives the flake to the `eznix`
-  group (`flakeWritable`, on by default); `iso.nix` makes that script depend
-  on the one that unpacks `templates/default.zip`, so the order is fixed.
-  Don't unpack anywhere later than activation.
+- **Nothing is loaded into `/etc/nixos` at startup** (since 2026-10-22; the
+  user wanted eznix's new System sources used instead). `templates/*.zip` are
+  offered by `plugins.system.sources` in `configuration.nix`, a GitHub folder
+  address on branch `main`, so a template only shows up once it is pushed
+  there. `autocomplete = true` generates the suggestions after each import.
+  Not built or booted; only evaluated.
 - **Autocomplete is eznix's own button, in the page's header**, in install
   mode too since 2026-10-13. Before, eznix left it out there and the ISO had
   one of its own in the install row; the user wanted it back at the top and
@@ -115,11 +116,10 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 ## Working in this repo
 
 - `iso.nix` holds only what's specific to being a live-CD image (squashfs
-  compression, not cloning a config into `/etc/nixos` on boot, restoring
-  `templates/default.zip` into `/etc/nixos` before eznix's service starts, the
-  live ISO's own `stateVersion`) and imports `configuration.nix`.
-- `templates/default.zip` is what actually seeds a fresh boot's `/etc/nixos` —
-  swap it for a different backup to change the starting config.
+  compression, not cloning a config into `/etc/nixos` on boot, the live ISO's
+  own `stateVersion`) and imports `configuration.nix`.
+- `templates/*.zip` are the starting configs the System menu offers; add a zip
+  to add a choice.
 - `configuration.nix` is the live environment: session/desktop setup,
   packages, and eznix's configuration and buttons.
 - `pkgs/` holds the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/
