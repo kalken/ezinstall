@@ -95,7 +95,7 @@ The repo is laid out as:
 - **`iso.nix`** — only what's specific to being a live-CD image (compression, not cloning a config on boot, the live ISO's own `stateVersion`). Imports `configuration.nix`.
 - **`configuration.nix`** — the live session, eznix's configuration and buttons.
 - **`pkgs/`** — the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/`ezinstall` tools: each is a plain `.sh` script here, wrapped as a `writeShellApplication` derivation by `pkgs/packages.nix`.
-- **`templates/`** — the zips of starting setups (`default.zip`: a full `/etc/nixos` backup with flake, `eznix/` tabs, plugins). Nothing is loaded at boot: they are listed under **System ▸ Start from a template** (the `system` plugin's `sources` in `configuration.nix` points at this folder on GitHub, branch `main`), and choosing one imports it. Add a zip here to add a choice.
+- **`templates/`** — the zips of starting setups (`ezvm-system.zip`: a full `/etc/nixos` backup with flake, `eznix/` tabs, plugins). Nothing is loaded at boot: they are listed under **System ▸ Start from a template** (the `system` plugin's `sources` in `configuration.nix` points at this folder on GitHub, branch `main`), and choosing one imports it. Add a zip here to add a choice.
 
 ## 📝 Notes
 

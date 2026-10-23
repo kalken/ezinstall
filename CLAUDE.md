@@ -66,7 +66,7 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   the installer image sets `security.sudo.wheelNeedsPassword = false`. The
   scripts in `pkgs/` still assume they are root and are not changed for it. A
   new button that needs root must say `sudo` too, in `configuration.nix` and
-  in the buttons inside `templates/default.zip`.
+  in the buttons inside `templates/ezvm-system.zip`.
 - The panel is a service of its own, started outside the X session:
   `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`,
   since there's only ever one X display on this live ISO) so
@@ -86,14 +86,14 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 - **eznix logs in with system passwords on NixOS** (its `password` option is
   refused by the NixOS module), so the page's login is the `nixos` user's
   own password, set in `configuration.nix`.
-- **`templates/default.zip` is built by hand**: unpack, edit, zip again
+- **`templates/ezvm-system.zip` is built by hand**: unpack, edit, zip again
   (`zip -r -X`). Its `flake.nix` imports the settings with
   `inputs.eznix.lib.jsonDir ./eznix`; eznix installs no loader file in that
   folder. Evaluate it after a change:
   `nix eval path:DIR#nixosConfigurations.default.config.system.build.toplevel.drvPath`.
 - **Both the ISO and what it installs build on the stable release**, `26.05`
   at the time: `nixpkgs.url` in `flake.nix` and in the `flake.nix` inside
-  `templates/default.zip`, and `stateVersion` in `iso.nix` and in the zip's
+  `templates/ezvm-system.zip`, and `stateVersion` in `iso.nix` and in the zip's
   `eznix/system/nix.json`. Until 2026-10-13 all four said `nixos-unstable`
   and `26.11`, while eznix's own templates were on the stable release; the
   user had them made the same ("make them both use stable then"). The number

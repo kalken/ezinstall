@@ -74,8 +74,16 @@ in
     noto-fonts-color-emoji
   ];
 
+  # Clipboard sharing with the host when this runs as a QEMU/SPICE VM. The
+  # module only starts the system daemon (spice-vdagentd); the per-user
+  # agent is started in sessionCommands below, as Openbox runs no XDG
+  # autostart entries.
+  services.spice-vdagentd.enable = true;
+
   # Launch a browser straight at the eznix UI on login.
   services.xserver.displayManager.sessionCommands = ''
+    ${pkgs.spice-vdagent}/bin/spice-vdagent &
+
     # eznix's terminal panel runs commands as the "nixos" user, the one this
     # X session belongs to, but from a service of its own that was not
     # started inside the session and has no XAuthority cookie for this
@@ -116,7 +124,7 @@ in
     # public password above and open a root shell; removed 2026-10-19.
     # flake and configDir intentionally left at eznix's own defaults
     # ("/etc/nixos" and "/etc/nixos/eznix"): the *.json tabs stay in that
-    # subfolder, which the starting config in templates/default.zip imports
+    # subfolder, which the starting config in templates/ezvm-system.zip imports
     # with eznix.lib.jsonDir, and ezinstall's `cp -a /etc/nixos/.` carries the
     # whole flake into the installed system as it is.
     mode = "install"; # dedicated install image: show mode = "install" buttons in their own row
