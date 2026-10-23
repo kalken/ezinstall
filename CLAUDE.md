@@ -141,6 +141,10 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   commit to `main`.
 - Don't add `Co-Authored-By: Claude ...` (or any other Claude/Anthropic
   attribution) to commit messages or PR descriptions in this repo.
+- Format the Nix files the standard way, with `nixfmt` (RFC 166), and check
+  with `nix run nixpkgs#nixfmt -- --check $(git ls-files '*.nix')` after
+  editing any of them. Any Python file would follow PEP 8 (there are none
+  now); the shell scripts in `pkgs/` are not run through a formatter.
 - Don't update this file for every small change — keep it to non-obvious
   gotchas and conventions. User-facing behavior (buttons, usage, options)
   belongs in README.md instead.
