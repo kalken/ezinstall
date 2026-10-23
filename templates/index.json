@@ -1,0 +1,11 @@
+{
+  "name": "Start from a template",
+  "items": [
+    {
+      "name": "ezvm",
+      "url": "ezvm-system.zip",
+      "path": "",
+      "description": "A starting point for a KDE desktop that runs as a QEMU/KVM virtual machine, with Brave, Ghostty and the micro editor. Change anything in it from the eznix page. SSH is off."
+    }
+  ]
+}
