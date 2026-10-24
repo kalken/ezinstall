@@ -19,7 +19,10 @@
   # buttons in the eznix terminal panel's Ezmenu.
   ezresolution = pkgs.writeShellApplication {
     name = "ezresolution";
-    runtimeInputs = with pkgs; [ xrandr gawk ];
+    runtimeInputs = with pkgs; [
+      xrandr
+      gawk
+    ];
     text = builtins.readFile ./ezresolution.sh;
   };
 
@@ -31,7 +34,10 @@
   # it's always an explicit choice.
   ezhwconfig = pkgs.writeShellApplication {
     name = "ezhwconfig";
-    runtimeInputs = with pkgs; [ util-linux nix ];
+    runtimeInputs = with pkgs; [
+      util-linux
+      nix
+    ];
     text = builtins.readFile ./ezhwconfig.sh;
   };
 
@@ -46,7 +52,14 @@
   # (multi-disk, existing partitions, btrfs subvolumes...).
   ezpartition = pkgs.writeShellApplication {
     name = "ezpartition";
-    runtimeInputs = with pkgs; [ util-linux parted dosfstools e2fsprogs cryptsetup gnugrep ];
+    runtimeInputs = with pkgs; [
+      util-linux
+      parted
+      dosfstools
+      e2fsprogs
+      cryptsetup
+      gnugrep
+    ];
     text = builtins.readFile ./ezpartition.sh;
   };
 
@@ -59,7 +72,11 @@
   # config error — it never touches partitioning.
   ezinstall = pkgs.writeShellApplication {
     name = "ezinstall";
-    runtimeInputs = with pkgs; [ util-linux nix jq ];
+    runtimeInputs = with pkgs; [
+      util-linux
+      nix
+      jq
+    ];
     text = builtins.readFile ./ezinstall.sh;
   };
 }

@@ -8,7 +8,12 @@
     eznix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, eznix }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      eznix,
+    }:
     let
       system = "x86_64-linux";
     in
@@ -22,7 +27,6 @@
         ];
       };
 
-      packages.${system}.default =
-        self.nixosConfigurations.eznix-iso.config.system.build.isoImage;
+      packages.${system}.default = self.nixosConfigurations.eznix-iso.config.system.build.isoImage;
     };
 }
