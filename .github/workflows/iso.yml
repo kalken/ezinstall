@@ -1,9 +1,15 @@
-# Builds the ISO on GitHub's runner, by hand (Actions, "Build ISO", Run workflow),
-# and keeps it as a workflow artifact for 30 days. No release is made.
+# Builds the ISO on GitHub's runner every Monday, or by hand (Actions, "Build ISO",
+# Run workflow), and keeps it as a workflow artifact for 30 days. On main it also
+# replaces the ISO on the one release called "latest"; there is no release history.
 name: Build ISO
 
 on:
+  schedule:
+    - cron: '0 4 * * 1'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   iso:
@@ -36,12 +42,25 @@ jobs:
             echo "::error::The ISO is over 2 GiB, GitHub's limit for a release file"
             exit 1
           fi
-          cp -L "$iso" .
+          cp -L "$iso" ezinstall.iso
+          sha256sum ezinstall.iso > ezinstall.iso.sha256
 
       # The ISO is already compressed; zipping it again only costs time.
       - uses: actions/upload-artifact@v4
         with:
           name: ezinstall-iso
-          path: '*.iso'
+          path: ezinstall.iso
           compression-level: 0
           retention-days: 30
+
+      # Only after the build and the size check passed, so a failed build leaves the
+      # old release as it was. The fixed file name is what lets --clobber replace it.
+      - name: Publish to the latest release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view latest || gh release create latest --target main --title "Latest ISO" --notes "Built weekly"
+          gh release upload latest ezinstall.iso ezinstall.iso.sha256 --clobber
+          gh release edit latest --notes "Built $(date -u +%F) from main"
+          df -h /
