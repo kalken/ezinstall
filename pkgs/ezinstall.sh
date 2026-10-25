@@ -46,5 +46,19 @@ else
   nixos-install --root /mnt
 fi
 
+# eznix's suggestions, if they were generated here (the Autocomplete button,
+# or the notice after an import): the installed system has the same flake, so
+# they hold there too and eznix starts with them. None generated, nothing is
+# copied and eznix there offers to generate them. Not worth failing the
+# install over: the button makes them again.
+if compgen -G '/var/lib/eznix/autocomplete/*.json' >/dev/null; then
+  if mkdir -p /mnt/var/lib/eznix/autocomplete &&
+    cp /var/lib/eznix/autocomplete/*.json /mnt/var/lib/eznix/autocomplete/; then
+    echo "Copied eznix's suggestions to the installed system."
+  else
+    echo "Could not copy eznix's suggestions; press Autocomplete there after the reboot." >&2
+  fi
+fi
+
 echo
 echo "Install finished. Reboot and remove the ISO to boot into the new system."
