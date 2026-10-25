@@ -77,7 +77,9 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   user wanted eznix's new System sources used instead). `templates/index.json`
   lists the zips next to it and is what `plugins.system.sources` in
   `configuration.nix` points at (raw GitHub address, branch `main`), so a
-  template only shows up once it is pushed there and has an entry in the index. `autocomplete = true` generates the suggestions after each import.
+  template only shows up once it is pushed there and has an entry in the index. An import removes the old suggestions and eznix's
+  notice offers to generate them; the `autocomplete` setting that did it by
+  itself is gone from eznix (2026-10-25).
   Not built or booted; only evaluated.
 - **Autocomplete is eznix's own button, in the page's header**, in install
   mode too since 2026-10-13. Before, eznix left it out there and the ISO had
