@@ -27,6 +27,17 @@ Evaluate without building, for a fast syntax/eval check:
 nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 ```
 
+Two ISOs since 2026-10-25, both in every branch: `eznix-iso` (eznix `main`,
+ezsetup's `main` index) and `eznix-iso-develop` (the `eznix-develop` input and
+ezsetup's `develop` index; `packages.develop`). `flake.nix` passes `ezBranch`
+to the modules (`specialArgs`): `configuration.nix` puts it in the template
+source's address, `iso.nix` in the file name. The user wanted develop on all
+three repositories to be testable together; branch-specific addresses in the
+files were turned down because every merge into `main` would carry them over.
+ezinstall's own files are the checkout's. Evaluate both after a change (with
+`path:.` while a new file is untracked). The workflow builds either (a choice
+when run by hand); only `eznix-iso` from `main` goes on the release.
+
 ## Non-obvious gotchas
 
 - **`nixos-generate-config --dir` bug**: it special-cases `--dir` when it's
@@ -126,11 +137,18 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 - `configuration.nix` is the live environment: session/desktop setup,
   packages, and eznix's configuration and buttons.
 - `pkgs/` holds the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/
-  `ezinstall` tools — each a plain `.sh` script, wrapped as a
+  `ezinstall`/`ezvalidate` tools — each a plain `.sh` script, wrapped as a
   `writeShellApplication` derivation in `pkgs/packages.nix`. Changes to the
   installed system's *behavior toward the target machine* (partitioning
   assumptions, install logic) belong in `pkgs/ezpartition.sh`/
-  `pkgs/ezinstall.sh`.
+  `pkgs/ezinstall.sh`. `ezvalidate` (2026-10-25) evaluates each
+  `nixosConfigurations` entry of `/etc/nixos` (or `--flake DIR`, or the hosts
+  named) down to `toplevel.drvPath`, building nothing; ezsetup's ezvm template
+  runs `sudo ezvalidate` first in "Install this setup (Guided)", and the
+  Ezmenu has "Check setup" for it alone (save first). As root, like
+  ezinstall, since evaluating writes `flake.lock` into the flake. Tried on a Mac
+  against the ezvm template: valid, a missing hardware file, a wrong option
+  name, an unknown host; not built into an ISO or run on one.
 - Changes to *which* eznix version or nixpkgs version is used belong in
   `flake.nix`.
 - There's no CI or test suite here; the only verification available is

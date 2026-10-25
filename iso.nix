@@ -1,9 +1,9 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, ezBranch, ... }:
 
 {
   imports = [ ./configuration.nix ];
 
-  image.baseName = lib.mkForce "eznix-live";
+  image.baseName = lib.mkForce (if ezBranch == "main" then "eznix-live" else "eznix-live-${ezBranch}");
 
   # The ISO has to stay under 2 GiB, GitHub's limit for a release file. Level
   # 19 is about 110 MiB smaller than level 6 here and still decompresses
