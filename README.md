@@ -84,6 +84,7 @@ Assumes partitioning/mounting is already done at `/mnt` (by `ezpartition`, GPart
 
 1. Detects whether `/etc/nixos` has a flake (`nixosConfigurations`, prompting if there's more than one host) or a classic `configuration.nix`.
 2. Copies the whole config to `/mnt/etc/nixos`, then runs `nixos-install`.
+3. Copies eznix's suggestions to the installed system, if they were generated here (**Autocomplete**), so it starts with them. If they weren't, eznix there offers to generate them.
 
 Re-run-safe — it never touches partitioning, so fixing a config error and clicking Install NixOS again just works.
 
