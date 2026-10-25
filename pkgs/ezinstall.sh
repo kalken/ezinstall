@@ -51,9 +51,11 @@ fi
 # they hold there too and eznix starts with them. None generated, nothing is
 # copied and eznix there offers to generate them. Not worth failing the
 # install over: the button makes them again.
-if compgen -G '/var/lib/eznix/autocomplete/*.json' >/dev/null; then
+shopt -s nullglob
+suggestions=(/var/lib/eznix/autocomplete/*.json)
+if [ "${#suggestions[@]}" -gt 0 ]; then
   if mkdir -p /mnt/var/lib/eznix/autocomplete &&
-    cp /var/lib/eznix/autocomplete/*.json /mnt/var/lib/eznix/autocomplete/; then
+    cp "${suggestions[@]}" /mnt/var/lib/eznix/autocomplete/; then
     echo "Copied eznix's suggestions to the installed system."
   else
     echo "Could not copy eznix's suggestions; press Autocomplete there after the reboot." >&2
