@@ -186,6 +186,12 @@ in
     # load your system (git clone a flake repo, or write configuration.nix by
     # hand) and to partition/mount your disk at /mnt however that config
     # expects (disko, manual parted/mkfs, ...) before clicking Install NixOS.
+    # The ISO's buttons are all in Ezmenu; a line after it sets the starting
+    # setup's own install button apart.
+    menus.Ezmenu = {
+      separator = "after";
+      static = true;
+    };
     buttons = [
       {
         label = "US";
