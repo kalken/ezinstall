@@ -77,7 +77,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view latest || gh release create latest --target main --title "Latest ISO" --notes "Built weekly"
+          gh release view latest || gh release create latest --target "$GITHUB_SHA" --title "Latest ISO" --notes "Built weekly"
+          # The release's "Source code" downloads are GitHub's, made from the commit its tag
+          # points at: move the tag to the commit this ISO was built from, so they match it.
+          # Also when the ISO is unchanged, since the source may have changed all the same.
+          git tag -f latest "$GITHUB_SHA"
+          git push --force origin refs/tags/latest
           if gh release download latest --pattern ezinstall.iso.sha256 --output released.sha256 --clobber \
               && cmp -s released.sha256 ezinstall.iso.sha256; then
             echo "The ISO is the one already released; nothing published"
