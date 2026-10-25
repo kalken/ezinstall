@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, ezBranch, ... }:
 
 let
   tools = import ./pkgs/packages.nix { inherit pkgs; };
@@ -169,13 +169,14 @@ in
     # terminalAutoHide = false;
     # Nothing is loaded into /etc/nixos at startup: the System menu offers the
     # starting setups under "Start from a template" (nixos/index.json of
-    # github.com/kalken/ezsetup). An import removes the old suggestions, and a
-    # notice in the corner then offers to generate them (the Autocomplete button).
+    # github.com/kalken/ezsetup, on the branch the ISO is for: ezBranch, from
+    # flake.nix). An import removes the old suggestions, and a notice in the
+    # corner then offers to generate them (the Autocomplete button).
     plugins.system = {
       sources = [
         {
           name = "Start from a template";
-          url = "https://raw.githubusercontent.com/kalken/ezsetup/main/nixos/index.json";
+          url = "https://raw.githubusercontent.com/kalken/ezsetup/${ezBranch}/nixos/index.json";
         }
       ];
     };

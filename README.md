@@ -95,7 +95,7 @@ The repo is laid out as:
 - **`flake.nix`** — wires nixpkgs, the `eznix` input, and `iso.nix` into the `eznix-iso` NixOS system that gets built.
 - **`iso.nix`** — only what's specific to being a live-CD image (compression, not cloning a config on boot, the live ISO's own `stateVersion`). Imports `configuration.nix`.
 - **`configuration.nix`** — the live session, eznix's configuration and buttons.
-- **`pkgs/`** — the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/`ezinstall` tools: each is a plain `.sh` script here, wrapped as a `writeShellApplication` derivation by `pkgs/packages.nix`.
+- **`pkgs/`** — the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/`ezinstall`/`ezvalidate` tools: each is a plain `.sh` script here, wrapped as a `writeShellApplication` derivation by `pkgs/packages.nix`. `ezvalidate [--flake DIR] [HOST...]` checks that the setup in `/etc/nixos` evaluates (every `nixosConfigurations` entry unless hosts are named), building nothing; the ezvm template's "Install this setup (Guided)" runs it before partitioning, and "Check setup" in the Ezmenu runs it alone.
 - **Starting setups** live in [ezsetup](https://github.com/kalken/ezsetup) (`nixos/`, e.g. `ezvm-system.zip`: a full `/etc/nixos` backup with flake, `eznix/` tabs, plugins). Nothing is loaded at boot: they are listed under **System ▸ Start from a template** (the `system` plugin's `sources` in `configuration.nix` points at ezsetup's `nixos/index.json` on GitHub, branch `main`), and choosing one imports it.
 
 ## 📝 Notes
@@ -106,5 +106,6 @@ The repo is laid out as:
 - To keep the image under 2 GB, the live session has no sound, no speech synthesis, no manuals or `man` pages, and no ZFS support (so no installing onto ZFS from it). Firmware for Wi-Fi and graphics is all there.
 - From a checkout it is `nix build` in the folder, and `nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath` checks that it evaluates without building anything.
 - `flake.lock` isn't committed (it's in `.gitignore`), so every build takes `kalken/eznix`'s default branch as it is then — no `nix flake update` needed to pick up fixes. It is also why the command above says `--no-write-lock-file`: built straight from GitHub, Nix has nowhere to write one and stops without it.
-- GitHub can build the ISO: Actions, **Build ISO**, Run workflow. It is kept there as a download (the run's artifact) for 30 days, and the run fails if the ISO is over 2 GiB. No release is made.
+- A test ISO uses the `develop` branches of eznix and ezsetup (the templates) instead of `main`: `nix build .#develop` from a checkout of ezinstall's `develop`, or `nix build --no-write-lock-file 'github:kalken/ezinstall/develop#develop'`. Its file is `eznix-live-develop.iso`. The same files make both ISOs on every branch, so merging `develop` into `main` changes nothing about which is which.
+- GitHub can build the ISO: Actions, **Build ISO**, Run workflow. Pick `eznix-iso-develop` there for the test ISO, which is never put on the release. It is kept there as a download (the run's artifact) for 30 days, and the run fails if the ISO is over 2 GiB. No release is made.
 - There's no test suite — the only verification available is `nix build` (or `nix eval` for a quicker check) succeeding, and, if actually validating behavior, booting the resulting ISO.
