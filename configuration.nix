@@ -8,6 +8,7 @@ let
     ezhwconfig
     ezpartition
     ezinstall
+    ezvalidate
     ;
 in
 {
@@ -135,6 +136,7 @@ in
     pkgs.xterm
     pkgs.micro
     ezinstall
+    ezvalidate
     ezpartition
     ezhwconfig
     ezdialog
@@ -318,6 +320,15 @@ in
         static = true;
         command = "sudo ezhwconfig --no-filesystems";
         menu = "Ezmenu/Hardware config";
+      }
+      {
+        label = "Check setup";
+        description = "Checks that the setup in /etc/nixos is valid, without installing anything";
+        mode = "install";
+        static = true;
+        command = "sudo ezvalidate";
+        save_first = true;
+        menu = "Ezmenu";
       }
       {
         label = "Install NixOS";

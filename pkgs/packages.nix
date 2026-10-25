@@ -63,6 +63,20 @@
     text = builtins.readFile ./ezpartition.sh;
   };
 
+  # Checks that the flake at /etc/nixos (or --flake DIR) evaluates: every
+  # nixosConfigurations entry, or the hosts named, down to the system's
+  # derivation, building nothing. Run before partitioning by the ezvm
+  # template's "Install this setup (Guided)" button, so a broken setup stops
+  # there and not halfway through nixos-install.
+  ezvalidate = pkgs.writeShellApplication {
+    name = "ezvalidate";
+    runtimeInputs = with pkgs; [
+      nix
+      jq
+    ];
+    text = builtins.readFile ./ezvalidate.sh;
+  };
+
   # The only job of this script: install whatever NixOS system is described
   # by the files currently at /etc/nixos — flake-based or classic
   # configuration.nix — onto whatever's mounted at /mnt.
