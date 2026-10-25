@@ -66,7 +66,7 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   the installer image sets `security.sudo.wheelNeedsPassword = false`. The
   scripts in `pkgs/` still assume they are root and are not changed for it. A
   new button that needs root must say `sudo` too, in `configuration.nix` and
-  in the buttons inside `templates/ezvm-system.zip`.
+  in the buttons inside ezsetup's `nixos/ezvm-system.zip`.
 - The panel is a service of its own, started outside the X session:
   `DISPLAY` is exported globally (`environment.variables.DISPLAY = ":0"`,
   since there's only ever one X display on this live ISO) so
@@ -74,7 +74,8 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
   `xhost +local:` is set in `sessionCommands` to let that shell, and root
   through sudo, reach the display at all.
 - **Nothing is loaded into `/etc/nixos` at startup** (since 2026-10-22; the
-  user wanted eznix's new System sources used instead). `templates/index.json`
+  user wanted eznix's new System sources used instead). The starting setups moved to their own repository on 2026-10-25,
+  `../ezsetup` (github.com/kalken/ezsetup); its `nixos/index.json`
   lists the zips next to it and is what `plugins.system.sources` in
   `configuration.nix` points at (raw GitHub address, branch `main`), so a
   template only shows up once it is pushed there and has an entry in the index. An import removes the old suggestions and eznix's
@@ -88,14 +89,14 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 - **eznix logs in with system passwords on NixOS** (its `password` option is
   refused by the NixOS module), so the page's login is the `nixos` user's
   own password, set in `configuration.nix`.
-- **`templates/ezvm-system.zip` is built by hand**: unpack, edit, zip again
+- **ezsetup's `nixos/ezvm-system.zip` is built by hand**: unpack, edit, zip again
   (`zip -r -X`). Its `flake.nix` imports the settings with
   `inputs.eznix.lib.jsonDir ./eznix`; eznix installs no loader file in that
   folder. Evaluate it after a change:
   `nix eval path:DIR#nixosConfigurations.default.config.system.build.toplevel.drvPath`.
 - **Both the ISO and what it installs build on the stable release**, `26.05`
   at the time: `nixpkgs.url` in `flake.nix` and in the `flake.nix` inside
-  `templates/ezvm-system.zip`, and `stateVersion` in `iso.nix` and in the zip's
+  ezsetup's `nixos/ezvm-system.zip`, and `stateVersion` in `iso.nix` and in the zip's
   `eznix/system/nix.json`. Until 2026-10-13 all four said `nixos-unstable`
   and `26.11`, while eznix's own templates were on the stable release; the
   user had them made the same ("make them both use stable then"). The number
@@ -120,9 +121,8 @@ nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath
 - `iso.nix` holds only what's specific to being a live-CD image (squashfs
   compression, not cloning a config into `/etc/nixos` on boot, the live ISO's
   own `stateVersion`) and imports `configuration.nix`.
-- `templates/*.zip` are the starting configs the System menu offers, listed by
-  `templates/index.json` (name, description, zip); add a zip and an entry to
-  add a choice.
+- The starting configs the System menu offers are in ezsetup (`nixos/*.zip`,
+  listed by `nixos/index.json`), not here since 2026-10-25.
 - `configuration.nix` is the live environment: session/desktop setup,
   packages, and eznix's configuration and buttons.
 - `pkgs/` holds the `ezdialog`/`ezresolution`/`ezhwconfig`/`ezpartition`/

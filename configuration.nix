@@ -157,7 +157,7 @@ in
     # public password above and open a root shell; removed 2026-10-19.
     # flake and configDir intentionally left at eznix's own defaults
     # ("/etc/nixos" and "/etc/nixos/eznix"): the *.json tabs stay in that
-    # subfolder, which the starting config in templates/ezvm-system.zip imports
+    # subfolder, which the starting config in ezsetup's nixos/ezvm-system.zip imports
     # with eznix.lib.jsonDir, and ezinstall's `cp -a /etc/nixos/.` carries the
     # whole flake into the installed system as it is.
     mode = "install"; # dedicated install image: show mode = "install" buttons in their own row
@@ -166,14 +166,14 @@ in
     # 2026-10-13), uncomment:
     # terminalAutoHide = false;
     # Nothing is loaded into /etc/nixos at startup: the System menu offers the
-    # starting setups under "Start from a template" (templates/index.json of
-    # this repository, on GitHub). An import removes the old suggestions, and a
+    # starting setups under "Start from a template" (nixos/index.json of
+    # github.com/kalken/ezsetup). An import removes the old suggestions, and a
     # notice in the corner then offers to generate them (the Autocomplete button).
     plugins.system = {
       sources = [
         {
           name = "Start from a template";
-          url = "https://raw.githubusercontent.com/kalken/ezinstall/main/templates/index.json";
+          url = "https://raw.githubusercontent.com/kalken/ezsetup/main/nixos/index.json";
         }
       ];
     };
