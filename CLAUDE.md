@@ -40,6 +40,9 @@ when run by hand); only `eznix-iso` from `main` is released: a release per chang
 ISO, tagged with the date, never changed afterwards, the three newest kept (since
 2026-10-26; before, one release `latest` had its ISO replaced and its tag moved, which
 the user saw as GitHub used the wrong way: its dates said nothing about the ISO).
+It builds only when eznix's or ezinstall's `main` moved since the newest release (its
+notes hold `eznix: SHA` and `ezinstall: SHA`; checked every morning), or by hand: the
+templates it installs have flake.locks of their own, so nixpkgs alone is no reason.
 
 ## Non-obvious gotchas
 
