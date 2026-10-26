@@ -43,6 +43,8 @@ the user saw as GitHub used the wrong way: its dates said nothing about the ISO)
 It builds only when eznix's or ezinstall's `main` moved since the newest release (its
 notes hold `eznix: SHA` and `ezinstall: SHA`; checked every morning), or by hand: the
 templates it installs have flake.locks of their own, so nixpkgs alone is no reason.
+An ISO identical to the newest release's is not released (no new version); its commits
+are remembered in the Actions cache (`built-EZNIX-EZINSTALL`) so mornings skip them.
 
 ## Non-obvious gotchas
 
