@@ -40,11 +40,10 @@ when run by hand); only `eznix-iso` from `main` is released: a release per chang
 ISO, tagged with the date, never changed afterwards, the three newest kept (since
 2026-10-26; before, one release `latest` had its ISO replaced and its tag moved, which
 the user saw as GitHub used the wrong way: its dates said nothing about the ISO).
-It builds when what goes into it changes: a push to `main` touching the `.nix` files or
-`pkgs/` (a path filter), a `repository_dispatch` (`eznix-main`) that eznix's own workflow
-sends when its `main` changes (with a token in eznix's secret `EZINSTALL_TOKEN`), or by
-hand; the templates it installs have flake.locks of their own, so nixpkgs alone is no
-reason. An ISO identical to the newest release's is not released (no new version). A
+It builds only by hand since 2026-10-26 (the user's choice "for now"): Run workflow here,
+or eznix's "Tell ezinstall", a `repository_dispatch` (`eznix-main`, token in eznix's secret
+`EZINSTALL_TOKEN`). Until then it also built on a push to `main` touching the `.nix` files
+or `pkgs/`, and on that signal sent by every change to eznix's `main`. An ISO identical to the newest release's is not released (no new version). A
 daily, then weekly, look at the commits, kept in the release notes and the Actions cache,
 was built and replaced the same day: the user wanted the standard way.
 
@@ -79,6 +78,15 @@ was built and replaced the same day: the user wanted the standard way.
   for already-queued events, it doesn't create new ones. `ezpartition` runs
   `udevadm trigger --settle` on each formatted partition to force udev to
   re-probe.
+- **`ezpartition` picks the disk from an arrow-key menu** (`choose()`, plain
+  bash, 2026-10-26, the user's idea), nothing typed: whole disks only
+  (`lsblk` TYPE `disk`), never one holding a mount outside `/mnt`
+  (`busy_disks()`: the ISO's stick at `/iso`); `--disk` is checked against
+  the same list. Partition devices are read from `/sys/class/block`
+  (`partdev()`), not guessed from the disk's name. With `/mnt` mounted the
+  menu's first line (or `--keep`) keeps it and exits 0, so ezvm's
+  `ezpartition && ezinstall` retries an install without partitioning.
+  The menu was driven with keys in a pty on a Mac; not run on the ISO.
 - **Commands run through eznix's terminal panel run as the `nixos` user**,
   never as root (nothing in eznix does; until 2026-10-12 the ISO was built on
   ezconf, whose panel was root's). So every button whose command needs root
