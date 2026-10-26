@@ -4,8 +4,7 @@
 # 2026-10-26: the templates the ISO installs have flake.locks of their own, so a newer
 # nixpkgs alone is no reason for a new ISO). Run by hand (Actions, "Build ISO", Run
 # workflow) it always builds. On main it then makes a release of it, tagged with the
-# date and titled with eznix's commit, unless it is the same ISO as the newest release;
-# the three newest releases are kept. A release is never changed once made:
+# date and titled with eznix's commit; the three newest releases are kept. A release is never changed once made:
 # releases/latest/download/ezinstall.iso is always the newest ISO.
 # Run by hand it can build the test ISO instead (eznix-iso-develop: eznix's and
 # ezsetup's develop branches), which is kept as an artifact and never released.
@@ -108,9 +107,11 @@ jobs:
       # Only after the build and the size check passed, so a failed build changes no
       # release. A release is one version: its tag, its commit and its ISO are never
       # changed afterwards (until 2026-10-26 one release, "latest", had its ISO replaced
-      # and its tag moved, and its dates said nothing about the ISO it held). An ISO with
-      # the checksum of the newest release's is not released again; GitHub shows the
-      # checksum of every release file, so there is no .sha256 file beside it.
+      # and its tag moved, and its dates said nothing about the ISO it held). Every build
+      # is released, even an ISO identical to the newest one: the notes have to name the
+      # commits it was built from, or the next morning's look would build it again, and
+      # again. GitHub shows the checksum of every release file, so there is no .sha256
+      # file beside it.
       - name: Release
         if: steps.look.outputs.build == 'true' && github.ref == 'refs/heads/main' && env.ISO == 'eznix-iso'
         env:
@@ -118,13 +119,6 @@ jobs:
           EZNIX: ${{ steps.look.outputs.eznix }}
         run: |
           sum="sha256:$(sha256sum ezinstall.iso | cut -d' ' -f1)"
-          released=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" \
-            --jq '.assets[] | select(.name == "ezinstall.iso") | .digest' 2>/dev/null || true)
-          if [ "$sum" = "$released" ]; then
-            echo "The ISO is the newest release's; nothing released"
-            echo "Unchanged: not released" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
           # The date, and the run's number on a second release the same day.
           tag=$(date -u +%F)
           if gh release view "$tag" >/dev/null 2>&1; then tag="$tag.$GITHUB_RUN_NUMBER"; fi
