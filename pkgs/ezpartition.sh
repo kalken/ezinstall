@@ -65,12 +65,16 @@ done
 
 # choose PROMPT ITEM...: a menu on the terminal, up/down (or k/j) to move,
 # Enter to take, q or Esc to cancel. The index taken is left in CHOICE; the
-# first item is where it starts.
+# first item is where it starts. The line chosen has an arrow at each end,
+# and nothing else changes (the user's wish: it was drawn reversed, white).
 choose() {
-  local prompt=$1 key rest i n
+  local prompt=$1 key rest i n width=0
   shift
   local items=("$@")
   n=${#items[@]}
+  for ((i = 0; i < n; i++)); do
+    if [ ${#items[i]} -gt "$width" ]; then width=${#items[i]}; fi
+  done
   CHOICE=0
   if [ ! -t 0 ]; then
     echo "No terminal to show a menu in: give --disk (and --yes)." >&2
@@ -85,7 +89,7 @@ choose() {
   while :; do
     for ((i = 0; i < n; i++)); do
       if [ "$i" = "$CHOICE" ]; then
-        printf '\e[2K  \e[7m> %s \e[0m\n' "${items[i]}"
+        printf '\e[2K  > %-*s <\n' "$width" "${items[i]}"
       else
         printf '\e[2K    %s\n' "${items[i]}"
       fi
