@@ -11,6 +11,8 @@
 # releases/latest/download/ezinstall.iso is always the newest ISO.
 # Run by hand it can build the test ISO instead (eznix-iso-develop: eznix's and
 # ezsetup's develop branches), which is kept as an artifact and never released.
+# Of the runs, this one and the two newest finished ones are kept (with their ISOs as
+# artifacts); older ones are deleted at the end of every build that went well.
 name: Build ISO
 
 on:
@@ -29,6 +31,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 # A newer change while a build runs: that build is stopped and the newer one goes on.
 concurrency:
@@ -128,3 +131,14 @@ jobs:
             --jq 'sort_by(.createdAt) | reverse | .[3:] | .[].tagName' |
             while read -r old; do gh release delete "$old" --yes --cleanup-tag; done
           df -h /
+
+      # Three runs are kept, like the releases: this one and the two newest finished
+      # ones. A run still going (the other ISO's) is never touched; deleting a run takes
+      # its artifact with it.
+      - name: Delete old runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/iso.yml/runs?status=completed&per_page=100" \
+            --jq '.workflow_runs | sort_by(.created_at) | reverse | .[2:] | .[].id' |
+            while read -r old; do gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/runs/$old"; done

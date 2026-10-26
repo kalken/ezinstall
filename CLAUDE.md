@@ -37,7 +37,9 @@ files were turned down because every merge into `main` would carry them over.
 ezinstall's own files are the checkout's. Evaluate both after a change (with
 `path:.` while a new file is untracked). The workflow builds either (a choice
 when run by hand); only `eznix-iso` from `main` is released: a release per changed
-ISO, tagged with the date, never changed afterwards, the three newest kept (since
+ISO, tagged with the date, never changed afterwards, the three newest kept, and the
+same for the workflow's runs and their ISO artifacts since 2026-10-27, at the user's word,
+which had piled up (`Delete old runs`, the last step) (releases since
 2026-10-26; before, one release `latest` had its ISO replaced and its tag moved, which
 the user saw as GitHub used the wrong way: its dates said nothing about the ISO).
 It builds only by hand since 2026-10-26 (the user's choice "for now"): Run workflow here,
