@@ -59,6 +59,9 @@
       e2fsprogs
       cryptsetup
       gnugrep
+      gnused
+      gawk
+      coreutils
     ];
     text = builtins.readFile ./ezpartition.sh;
   };

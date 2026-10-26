@@ -60,7 +60,7 @@ eznix's own terminal panel is a real interactive shell underneath all of this, r
 
 Interactive, whole-disk only (not for multi-disk or existing-partition layouts):
 
-1. Pick a target disk (e.g. `sda`, `nvme0n1`) and confirm — **this erases the whole disk**.
+1. Pick a target disk from a menu with the arrow keys and Enter, and confirm — **this erases the whole disk**. Only whole disks are listed; the installer's own USB stick and any disk in use are left out. If something is already mounted at `/mnt` (an earlier run), the first line keeps it and partitions nothing, so the guided install goes straight on to installing (`--keep` does the same).
 2. Optionally LUKS-encrypt root (opened as `/dev/mapper/rootfs_luks`).
 3. Boot (ESP) size — default `512M`.
 4. Swap size, or `0` to skip — default `4G`.
@@ -83,7 +83,7 @@ Not run automatically by `ezpartition` or `ezinstall` — always an explicit cho
 Assumes partitioning/mounting is already done at `/mnt` (by `ezpartition`, GParted, `disko`, or manual `parted`/`mkfs` — it doesn't care which), and that `hardware-configuration.nix` is already in place if your config needs one. It:
 
 1. Detects whether `/etc/nixos` has a flake (`nixosConfigurations`, prompting if there's more than one host) or a classic `configuration.nix`.
-2. Copies the whole config to `/mnt/etc/nixos`, then runs `nixos-install`.
+2. Copies the whole config to `/mnt/etc/nixos`, removing what was there first (an earlier install's), then runs `nixos-install`.
 3. Copies eznix's suggestions to the installed system, if they were generated here (**Autocomplete**), so it starts with them. If they weren't, eznix there offers to generate them.
 
 Re-run-safe — it never touches partitioning, so fixing a config error and clicking Install NixOS again just works.
@@ -107,5 +107,5 @@ The repo is laid out as:
 - From a checkout it is `nix build` in the folder, and `nix eval .#nixosConfigurations.eznix-iso.config.system.build.isoImage.outPath` checks that it evaluates without building anything.
 - `flake.lock` isn't committed (it's in `.gitignore`), so every build takes `kalken/eznix`'s default branch as it is then — no `nix flake update` needed to pick up fixes. It is also why the command above says `--no-write-lock-file`: built straight from GitHub, Nix has nowhere to write one and stops without it.
 - A test ISO uses the `develop` branches of eznix and ezsetup (the templates) instead of `main`: `nix build .#develop` from a checkout of ezinstall's `develop`, or `nix build --no-write-lock-file 'github:kalken/ezinstall/develop#develop'`. Its file is `eznix-live-develop.iso`. The same files make both ISOs on every branch, so merging `develop` into `main` changes nothing about which is which.
-- GitHub builds the ISO when what goes into it changes: a push to ezinstall's `main` that touches its `.nix` files or `pkgs/`, or a change to eznix's `main` (eznix's workflow tells this one), and when run by hand: Actions, **Build ISO**, Run workflow. Built from `main`, an ISO that differs from the newest release's becomes a release of its own (an identical one is not released), tagged with the date and titled with the eznix commit it holds; the three newest are kept. The newest ISO is always at <https://github.com/kalken/ezinstall/releases/latest/download/ezinstall.iso>, and GitHub shows each one's checksum on its release. Pick `eznix-iso-develop` when running it by hand for the test ISO, which is never released: it is kept as a download (the run's artifact) for 30 days, as every build is. The run fails if the ISO is over 2 GiB.
+- GitHub builds the ISO when it is run by hand: Actions, **Build ISO**, Run workflow. Built from `main`, an ISO that differs from the newest release's becomes a release of its own (an identical one is not released), tagged with the date and titled with the eznix commit it holds; the three newest are kept. The newest ISO is always at <https://github.com/kalken/ezinstall/releases/latest/download/ezinstall.iso>, and GitHub shows each one's checksum on its release. Pick `eznix-iso-develop` when running it by hand for the test ISO, which is never released: it is kept as a download (the run's artifact) for 30 days, as every build is. The run fails if the ISO is over 2 GiB.
 - There's no test suite — the only verification available is `nix build` (or `nix eval` for a quicker check) succeeding, and, if actually validating behavior, booting the resulting ISO.

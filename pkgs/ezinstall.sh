@@ -36,6 +36,10 @@ fi
 # that resolve correctly with no extra flags, and also leaves the
 # installed system with a real /etc/nixos for future nixos-rebuild calls
 # (otherwise it'd be empty after reboot, since nothing else puts it there).
+# Whatever is there already goes first (an earlier install on partitions
+# kept by ezpartition): a copy over it would leave its old files in the
+# new configuration (the user's wish, 2026-10-27).
+rm -rf /mnt/etc/nixos
 mkdir -p /mnt/etc/nixos
 cp -a /etc/nixos/. /mnt/etc/nixos/
 

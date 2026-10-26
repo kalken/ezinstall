@@ -1,11 +1,10 @@
 # Builds the ISO on GitHub's runner, and keeps it as a workflow artifact for 30 days.
-# It runs when what goes into the ISO changes, the standard way (the user's choice,
-# 2026-10-26, after a daily and a weekly look at the commits with the answers kept in
-# release notes and the Actions cache): a push to ezinstall's main that touches the
-# ISO's files, or a signal from eznix's own workflow (.github/workflows/ezinstall.yml
-# there) when eznix's main changes. The templates the ISO installs have flake.locks of
-# their own, so a newer nixpkgs alone is no reason for a new ISO. Run by hand (Actions,
-# "Build ISO", Run workflow) for anything else.
+# Only by hand (Actions, "Build ISO", Run workflow), the user's choice "for now" on
+# 2026-10-26: it ran by itself on a push to main that touched the ISO's files and on
+# eznix's signal, which made a release for every change while both repositories were
+# being worked on. To have that back, put the push trigger below back (paths
+# flake.nix, '*.nix', pkgs/**) and the push trigger of eznix's
+# .github/workflows/ezinstall.yml, which still sends the signal when run by hand.
 # On main it then makes a release of it, tagged with the date and titled with eznix's
 # commit, unless the ISO is identical to the newest release's; the three newest
 # releases are kept. A release is never changed once made:
@@ -15,13 +14,7 @@
 name: Build ISO
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - flake.nix
-      - '*.nix'
-      - pkgs/**
-  # Sent by eznix's workflow, with the commit as client_payload.eznix.
+  # Sent by eznix's workflow (run by hand there), with the commit as client_payload.eznix.
   repository_dispatch:
     types: [eznix-main]
   workflow_dispatch:
