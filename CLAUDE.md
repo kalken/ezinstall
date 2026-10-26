@@ -40,11 +40,13 @@ when run by hand); only `eznix-iso` from `main` is released: a release per chang
 ISO, tagged with the date, never changed afterwards, the three newest kept (since
 2026-10-26; before, one release `latest` had its ISO replaced and its tag moved, which
 the user saw as GitHub used the wrong way: its dates said nothing about the ISO).
-It builds only when eznix's or ezinstall's `main` moved since the newest release (its
-notes hold `eznix: SHA` and `ezinstall: SHA`; checked every morning), or by hand: the
-templates it installs have flake.locks of their own, so nixpkgs alone is no reason.
-An ISO identical to the newest release's is not released (no new version); its commits
-are remembered in the Actions cache (`built-EZNIX-EZINSTALL`) so mornings skip them.
+It builds when what goes into it changes: a push to `main` touching the `.nix` files or
+`pkgs/` (a path filter), a `repository_dispatch` (`eznix-main`) that eznix's own workflow
+sends when its `main` changes (with a token in eznix's secret `EZINSTALL_TOKEN`), or by
+hand; the templates it installs have flake.locks of their own, so nixpkgs alone is no
+reason. An ISO identical to the newest release's is not released (no new version). A
+daily, then weekly, look at the commits, kept in the release notes and the Actions cache,
+was built and replaced the same day: the user wanted the standard way.
 
 ## Non-obvious gotchas
 
