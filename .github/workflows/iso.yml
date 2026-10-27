@@ -119,9 +119,10 @@ jobs:
             echo "Identical ISO: not released" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          # The date, and the run's number on a second release the same day.
-          tag=$(date -u +%F)
-          if gh release view "$tag" >/dev/null 2>&1; then tag="$tag.$GITHUB_RUN_NUMBER"; fi
+          # The date, and .2, .3 and so on for a second, third release the same day (it was the
+          # run's number, which said nothing; the user's wish, 2026-10-28).
+          day=$(date -u +%F); tag=$day; n=2
+          while gh release view "$tag" >/dev/null 2>&1; do tag="$day.$n"; n=$((n + 1)); done
           gh release create "$tag" ezinstall.iso --target "$GITHUB_SHA" --latest \
             --title "ezinstall $tag (eznix ${EZNIX:0:7})" \
             --notes "$(printf 'eznix: %s\nezinstall: %s\n\nChecksum: `%s`' "$EZNIX" "$GITHUB_SHA" "$sum")"
