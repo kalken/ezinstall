@@ -34,7 +34,14 @@ to the modules (`specialArgs`): `configuration.nix` puts it in the template
 source's address, `iso.nix` in the file name. The user wanted develop on all
 three repositories to be testable together; branch-specific addresses in the
 files were turned down because every merge into `main` would carry them over.
-ezinstall's own files are the checkout's. Evaluate both after a change (with
+ezinstall's own files are the checkout's. Each also for ARM since 2026-10-28
+(`eznix-iso-aarch64`, `eznix-iso-develop-aarch64`, `packages.aarch64-linux`, the file
+name ending in `-aarch64`), for UTM on the user's Mac. The user built `develop` on an x86
+NixOS with binfmt emulation the same day, booted it in UTM, and installed ezvm from it ("it
+worked"). Then the workflow built both, at the user's wish: a job per CPU (the ARM one on
+`ubuntu-24.04-arm`, natively), eznix's commit found once in a job before them, and one
+release with `ezinstall.iso` and `ezinstall-aarch64.iso`, made when either differs from the
+newest release's. Linted with actionlint; not run on GitHub yet. Evaluate both after a change (with
 `path:.` while a new file is untracked). The workflow builds either (a choice
 when run by hand); only `eznix-iso` from `main` is released: a release per changed
 ISO, tagged with the date, never changed afterwards, the three newest kept, and the
