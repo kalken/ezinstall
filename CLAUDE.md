@@ -34,7 +34,10 @@ to the modules (`specialArgs`): `configuration.nix` puts it in the template
 source's address, `iso.nix` in the file name. The user wanted develop on all
 three repositories to be testable together; branch-specific addresses in the
 files were turned down because every merge into `main` would carry them over.
-ezinstall's own files are the checkout's. Evaluate both after a change (with
+ezinstall's own files are the checkout's. Each also for ARM since 2026-10-28
+(`eznix-iso-aarch64`, `eznix-iso-develop-aarch64`, `packages.aarch64-linux`, the file
+name ending in `-aarch64`), for UTM on the user's Mac; built by hand only (an x86 NixOS
+with binfmt emulation), not by the workflow. Evaluate both after a change (with
 `path:.` while a new file is untracked). The workflow builds either (a choice
 when run by hand); only `eznix-iso` from `main` is released: a release per changed
 ISO, tagged with the date, never changed afterwards, the three newest kept, and the

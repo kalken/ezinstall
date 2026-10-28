@@ -3,7 +3,14 @@
 {
   imports = [ ./configuration.nix ];
 
-  image.baseName = lib.mkForce (if ezBranch == "main" then "eznix-live" else "eznix-live-${ezBranch}");
+  # eznix-live, -develop for the test ISO, -aarch64 for ARM; x86_64 has no suffix.
+  image.baseName = lib.mkForce (
+    lib.concatStrings [
+      "eznix-live"
+      (lib.optionalString (ezBranch != "main") "-${ezBranch}")
+      (lib.optionalString pkgs.stdenv.hostPlatform.isAarch64 "-aarch64")
+    ]
+  );
 
   # The ISO has to stay under 2 GiB, GitHub's limit for a release file. Level
   # 19 is about 110 MiB smaller than level 6 here and still decompresses
