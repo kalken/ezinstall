@@ -1,14 +1,16 @@
-# Builds the ISO on GitHub's runner, and keeps it as a workflow artifact for 30 days.
+# Builds the ISO on GitHub's runners, for x86_64 and for ARM (aarch64, on GitHub's ARM
+# runner, natively; since 2026-10-28, the user's wish), and keeps each as a workflow
+# artifact for 30 days.
 # Only by hand (Actions, "Build ISO", Run workflow), the user's choice "for now" on
 # 2026-10-26: it ran by itself on a push to main that touched the ISO's files and on
 # eznix's signal, which made a release for every change while both repositories were
 # being worked on. To have that back, put the push trigger below back (paths
 # flake.nix, '*.nix', pkgs/**) and the push trigger of eznix's
 # .github/workflows/ezinstall.yml, which still sends the signal when run by hand.
-# On main it then makes a release of it, tagged with the date and titled with eznix's
-# commit, unless the ISO is identical to the newest release's; the three newest
+# On main it then makes a release of both, tagged with the date and titled with eznix's
+# commit, unless both are identical to the newest release's; the three newest
 # releases are kept. A release is never changed once made:
-# releases/latest/download/ezinstall.iso is always the newest ISO.
+# releases/latest/download/ezinstall.iso (ezinstall-aarch64.iso) is always the newest.
 # Run by hand it can build the test ISO instead (eznix-iso-develop: eznix's and
 # ezsetup's develop branches), which is kept as an artifact and never released.
 # Of the runs, this one and the two newest finished ones are kept (with their ISOs as
@@ -39,16 +41,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  iso:
+  # eznix's commit is the one the signal names, else main's as it is now; it is
+  # pinned for the build, so the release says which eznix it holds even if main
+  # moves during the build. Found once, so both ISOs hold the same eznix.
+  commits:
     runs-on: ubuntu-latest
-    env:
-      # A push or a signal has no inputs, and builds the normal ISO.
-      ISO: ${{ inputs.iso || 'eznix-iso' }}
-    timeout-minutes: 300
+    outputs:
+      eznix: ${{ steps.commits.outputs.eznix }}
     steps:
-      # eznix's commit is the one the signal names, else main's as it is now; it is
-      # pinned for the build, so the release says which eznix it holds even if main
-      # moves during the build.
       - name: Find eznix's commit
         id: commits
         env:
@@ -56,6 +56,24 @@ jobs:
           SENT: ${{ github.event.client_payload.eznix }}
         run: echo "eznix=${SENT:-$(gh api repos/kalken/eznix/commits/main --jq .sha)}" >> "$GITHUB_OUTPUT"
 
+  # One per CPU, each on a runner of its own kind. One failing does not stop the
+  # other (its ISO is still kept); a release needs both.
+  iso:
+    needs: commits
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            suffix: ""
+          - runner: ubuntu-24.04-arm
+            suffix: -aarch64
+    runs-on: ${{ matrix.runner }}
+    env:
+      # A push or a signal has no inputs, and builds the normal ISO.
+      ISO: ${{ inputs.iso || 'eznix-iso' }}
+    timeout-minutes: 300
+    steps:
       # The runner has about 20-30 GB free; the Nix store and the ISO come close.
       - name: Free disk space
         run: |
@@ -71,67 +89,88 @@ jobs:
       # at the commit above (develop as it is now, for the test ISO).
       - name: Build
         env:
-          EZNIX: ${{ steps.commits.outputs.eznix }}
+          EZNIX: ${{ needs.commits.outputs.eznix }}
+          SUFFIX: ${{ matrix.suffix }}
         run: |
           pin=()
           if [ "$ISO" = eznix-iso ]; then pin=(--override-input eznix "github:kalken/eznix/$EZNIX"); fi
-          nix build --no-write-lock-file --print-build-logs "${pin[@]}" ".#nixosConfigurations.$ISO.config.system.build.isoImage"
+          nix build --no-write-lock-file --print-build-logs "${pin[@]}" ".#nixosConfigurations.$ISO$SUFFIX.config.system.build.isoImage"
 
       # 2 GiB is GitHub's limit for a release file; the ISO is kept under it.
       - name: Check size
+        env:
+          SUFFIX: ${{ matrix.suffix }}
         run: |
           iso=$(echo result/iso/*.iso)
           size=$(stat -L -c %s "$iso")
           echo "$(basename "$iso"): $((size / 1048576)) MiB"
-          echo "ISO: $((size / 1048576)) MiB" >> "$GITHUB_STEP_SUMMARY"
+          echo "ISO$SUFFIX: $((size / 1048576)) MiB" >> "$GITHUB_STEP_SUMMARY"
           if [ "$size" -ge $((2048 * 1048576)) ]; then
             echo "::error::The ISO is over 2 GiB, GitHub's limit for a release file"
             exit 1
           fi
-          cp -L "$iso" ezinstall.iso
+          cp -L "$iso" "ezinstall$SUFFIX.iso"
 
       # The ISO is already compressed; zipping it again only costs time.
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ISO == 'eznix-iso' && 'ezinstall-iso' || 'ezinstall-iso-develop' }}
-          path: ezinstall.iso
+          name: ${{ env.ISO == 'eznix-iso' && 'ezinstall-iso' || 'ezinstall-iso-develop' }}${{ matrix.suffix }}
+          path: ezinstall${{ matrix.suffix }}.iso
           compression-level: 0
           retention-days: 30
 
-      # Only after the build and the size check passed, so a failed build changes no
-      # release. A release is one version: its tag, its commit and its ISO are never
+  release:
+    needs: [commits, iso]
+    runs-on: ubuntu-latest
+    env:
+      ISO: ${{ inputs.iso || 'eznix-iso' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        if: github.ref == 'refs/heads/main' && env.ISO == 'eznix-iso'
+        with:
+          pattern: ezinstall-iso*
+          merge-multiple: true
+
+      # Only after both builds and size checks passed, so a failed build changes no
+      # release. A release is one version: its tag, its commit and its ISOs are never
       # changed afterwards (until 2026-10-26 one release, "latest", had its ISO replaced
-      # and its tag moved, and its dates said nothing about the ISO it held). An ISO
-      # identical to the newest release's is no new release (the user's word: a change
-      # that does not reach the ISO is no new version). GitHub shows the checksum of
-      # every release file, so there is no .sha256 file beside it.
+      # and its tag moved, and its dates said nothing about the ISO it held). ISOs
+      # identical to the newest release's are no new release (the user's word: a change
+      # that does not reach the ISO is no new version); it is a new one when either
+      # differs, or the newest has no ARM ISO yet. GitHub shows the checksum of every
+      # release file, so there is no .sha256 file beside them.
       - name: Release
         if: github.ref == 'refs/heads/main' && env.ISO == 'eznix-iso'
         env:
           GH_TOKEN: ${{ github.token }}
-          EZNIX: ${{ steps.commits.outputs.eznix }}
+          EZNIX: ${{ needs.commits.outputs.eznix }}
         run: |
-          sum="sha256:$(sha256sum ezinstall.iso | cut -d' ' -f1)"
-          released=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" \
-            --jq '.assets[] | select(.name == "ezinstall.iso") | .digest' 2>/dev/null || true)
-          if [ "$sum" = "$released" ]; then
-            echo "The ISO is the newest release's; nothing released"
-            echo "Identical ISO: not released" >> "$GITHUB_STEP_SUMMARY"
+          same=yes; sums=""
+          for f in ezinstall.iso ezinstall-aarch64.iso; do
+            sum="sha256:$(sha256sum "$f" | cut -d' ' -f1)"
+            sums="$sums$(printf '%s: `%s`\n' "$f" "$sum")"$'\n'
+            released=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" \
+              --jq ".assets[] | select(.name == \"$f\") | .digest" 2>/dev/null || true)
+            [ "$sum" = "$released" ] || same=no
+          done
+          if [ "$same" = yes ]; then
+            echo "The ISOs are the newest release's; nothing released"
+            echo "Identical ISOs: not released" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           # The date, and .2, .3 and so on for a second, third release the same day (it was the
           # run's number, which said nothing; the user's wish, 2026-10-28).
           day=$(date -u +%F); tag=$day; n=2
-          while gh release view "$tag" >/dev/null 2>&1; do tag="$day.$n"; n=$((n + 1)); done
-          gh release create "$tag" ezinstall.iso --target "$GITHUB_SHA" --latest \
+          while gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; do tag="$day.$n"; n=$((n + 1)); done
+          gh release create "$tag" ezinstall.iso ezinstall-aarch64.iso -R "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" --latest \
             --title "ezinstall $tag (eznix ${EZNIX:0:7})" \
-            --notes "$(printf 'eznix: %s\nezinstall: %s\n\nChecksum: `%s`' "$EZNIX" "$GITHUB_SHA" "$sum")"
+            --notes "$(printf 'eznix: %s\nezinstall: %s\n\nChecksums:\n%s' "$EZNIX" "$GITHUB_SHA" "$sums")"
           echo "Released: $tag" >> "$GITHUB_STEP_SUMMARY"
           # Three are kept, so a broken ISO can be gone back from; the rest go with their tags.
-          gh release list --limit 100 --json tagName,createdAt \
+          gh release list -R "$GITHUB_REPOSITORY" --limit 100 --json tagName,createdAt \
             --jq 'sort_by(.createdAt) | reverse | .[3:] | .[].tagName' |
-            while read -r old; do gh release delete "$old" --yes --cleanup-tag; done
-          df -h /
+            while read -r old; do gh release delete "$old" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag; done
 
       # Three runs are kept, like the releases: this one and the two newest finished
       # ones. A run still going (the other ISO's) is never touched; deleting a run takes
