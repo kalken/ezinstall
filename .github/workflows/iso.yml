@@ -168,8 +168,8 @@ jobs:
             --notes "$(printf 'eznix: %s\nezinstall: %s\n\nChecksums:\n%s' "$EZNIX" "$GITHUB_SHA" "$sums")"
           echo "Released: $tag" >> "$GITHUB_STEP_SUMMARY"
           # Three are kept, so a broken ISO can be gone back from; the rest go with their tags.
-          gh release list -R "$GITHUB_REPOSITORY" --limit 100 --json tagName,createdAt \
-            --jq 'sort_by(.createdAt) | reverse | .[3:] | .[].tagName' |
+          gh release list -R "$GITHUB_REPOSITORY" --limit 100 --json tagName,publishedAt \
+            --jq 'sort_by(.publishedAt) | reverse | .[3:] | .[].tagName' |
             while read -r old; do gh release delete "$old" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag; done
 
       # Three runs are kept, like the releases: this one and the two newest finished
